@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+*.egg-info/
+
+# Backend runtime artifacts
+backend/first_hour.db
+backend/storage/
+
+# Node / frontend
+node_modules/
+dist/
+.vite/
+
+# Env files with real values (only .env.example files are committed)
+.env
+backend/.env
+frontend/.env
+
+# OS / editor
+.DS_Store
+*.log

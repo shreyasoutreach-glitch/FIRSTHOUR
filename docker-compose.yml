@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-first_hour}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-first_hour}
+      POSTGRES_DB: ${POSTGRES_DB:-first_hour}
+    ports:
+      - "5432:5432"
+    volumes:
+      - first_hour_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-first_hour}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-first_hour}:${POSTGRES_PASSWORD:-first_hour}@postgres:5432/${POSTGRES_DB:-first_hour}
+      DEMO_MODE: ${DEMO_MODE:-true}
+      SEED: ${SEED:-42}
+      EVIDENCE_STORAGE_DIR: /app/storage/evidence
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      CORS_ORIGINS: http://localhost:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    volumes:
+      - evidence_storage:/app/storage/evidence
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-}
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+
+volumes:
+  first_hour_pgdata:
+  evidence_storage:
