@@ -109,55 +109,25 @@ def _parse_amount(raw: str, unit: str | None) -> float:
 
 
 def extract_candidate_claims(raw_text: str, source_artifact_id: str) -> list[dict]:
-    """Deterministic rule-based extractor used for the seeded demo evidence.
-
-    This is the default implementation of the "LLM interprets evidence" layer
-    for this sandbox: the demo's WhatsApp/SMS/bank text is itself synthetic,
-    so a rule-based parser over that fixed vocabulary *is* the real
-    extraction step, not a stand-in for one. In a real deployment this
-    function is the seam where a schema-constrained Claude API call would
-    replace/augment the regex pass (see ANTHROPIC_API_KEY in .env.example) --
-    its output shape does not change either way.
-    """
-    claims: list[dict] = []
-
-    for pattern in AMOUNT_PATTERNS:
-        for match in pattern.finditer(raw_text):
-            amount = _parse_amount(match.group(1), match.group(2))
-            claims.append({
-                "id": f"CLM_{uuid.uuid4().hex[:10]}",
-                "source_artifact_id": source_artifact_id,
-                "source_location": f"char:{match.start()}-{match.end()}",
-                "extraction_method": "rule_based_extractor",
-                "claim_type": "amount",
-                "claim_value": {"amount": amount, "raw_text": match.group(0)},
-            })
-
-    for pattern in BENEFICIARY_PATTERNS:
-        for match in pattern.finditer(raw_text):
-            name = match.group(1).strip()
-            claims.append({
-                "id": f"CLM_{uuid.uuid4().hex[:10]}",
-                "source_artifact_id": source_artifact_id,
-                "source_location": f"char:{match.start()}-{match.end()}",
-                "extraction_method": "rule_based_extractor",
-                "claim_type": "beneficiary",
-                "claim_value": {"name": name, "raw_text": match.group(0)},
-            })
-
-    lowered = raw_text.lower()
-    hit_keywords = [kw for kw in INSTRUCTION_KEYWORDS if kw in lowered]
-    if hit_keywords:
-        claims.append({
-            "id": f"CLM_{uuid.uuid4().hex[:10]}",
-            "source_artifact_id": source_artifact_id,
-            "source_location": "full_text",
-            "extraction_method": "rule_based_extractor",
-            "claim_type": "instruction_signal",
-            "claim_value": {"keywords": hit_keywords},
-        })
-
-    return claims
+    """Uses the EvidenceProvider abstraction to extract candidate claims."""
+    from app.services.evidence.provider import GeminiEvidenceProvider, DeterministicEvidenceProvider
+    
+    provider = None
+    if os.environ.get("GEMINI_API_KEY") and os.environ.get("DEMO_MODE", "false").lower() != "true":
+        try:
+            provider = GeminiEvidenceProvider()
+        except ValueError:
+            provider = DeterministicEvidenceProvider()
+    else:
+        provider = DeterministicEvidenceProvider()
+        
+    try:
+        return provider.extract(raw_text, source_artifact_id)
+    except Exception as e:
+        import logging
+        logging.warning(f"Live LLM extraction failed: {e}. Falling back to deterministic.")
+        fallback = DeterministicEvidenceProvider()
+        return fallback.extract(raw_text, source_artifact_id)
 
 
 def cross_reference_amount_claim(claim_amount: float, candidate_events: list[tuple[str, float]],
