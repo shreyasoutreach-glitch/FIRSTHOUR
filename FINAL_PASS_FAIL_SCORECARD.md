@@ -1,97 +1,82 @@
-# FINAL_PASS_FAIL_SCORECARD
+# FINAL_PASS_FAIL_SCORECARD — Enterprise Upgrade Pass
 
-Every line below reflects a command actually run in this session, not an
-estimate. Raw output is quoted where useful.
-
-## Security fix
-
-| Check | Result |
-|---|---|
-| Path-traversal sanitization implemented (`safe_filename` + `is_path_contained`) | **PASS** |
-| Grep confirms no other untrusted-filename → filesystem-path join exists in `backend/` | **PASS** — only match is the now-fixed line in `routes_evidence.py` |
-| Live server test: uploading a file named `../../../../etc/cron.d/evil` against a *running* uvicorn instance lands at `backend/storage/evidence/EVD_..._evil` (inside the storage dir), API response `filename` field returns sanitized `"evil"` | **PASS** |
-
-## Traversal regression tests
-
-| Test file | Cases | Result |
-|---|---|---|
-| `test_evidence_filename_security.py` | 13 unit tests (Unix traversal, Windows traversal, absolute Unix path, absolute Windows path, null-byte, pure-traversal, empty/None, normal filenames preserved, unsafe chars stripped, containment true/false incl. sibling-directory trap) | **13/13 PASS** |
-| `test_evidence_upload_security_api.py` | 5 parametrized malicious filenames × full-endpoint traversal check + normal-filename end-to-end test + sanitized-response-field test = 7 test cases | **7/7 PASS** |
+Every line reflects a command actually run in this session. Raw output
+quoted where useful. This supersedes the prior scorecard's numbers (which
+covered only the earlier security-fix pass); prior results are still
+accurate for what they tested, just smaller in scope than this one.
 
 ## Backend tests
 
 ```
 $ .venv/bin/python -m pytest -q
-........................................................................ [ 92%]
-......                                                                   [100%]
-78 passed, 1 warning in 38.67s
+...............................................................................
+..... [ 60%]
+...............................................                          [100%]
+119 passed in 44.97s
 ```
-**BACKEND TESTS: 78/78 PASS** (59 from the prior pass + 19 new security tests, zero
-skipped, zero xfail, no test coverage reduced to force a pass).
+
+Breakdown: 82 from the prior passes (algorithms, evidence pipeline, state
+machine, human questions, exposure/graph, API integration, path-traversal
+security) + 11 tenant isolation + 8 RBAC permission matrix + 12 recovery
+command lifecycle + 6 convergence checking.
+
+**BACKEND TESTS: 119/119 PASS**
 
 ## Frontend
 
 ```
-$ npx tsc --noEmit
-(exit code 0, no output)
-
+$ npx tsc --noEmit    -> exit 0, no output
 $ npm run build
 ✓ 1878 modules transformed.
-dist/index.html                   0.48 kB
-dist/assets/index-Iy6xsbdy.css   20.46 kB
-dist/assets/index-CjIf_agR.js   325.90 kB
-✓ built in 5.90s
+dist/assets/index-DrHNW5Fx.js   335.16 kB
+✓ built in 5.62s
 ```
+
 **TSC: PASS** &nbsp;&nbsp; **FRONTEND BUILD: PASS**
 
-## HTTP end-to-end (against a freshly reseeded, live uvicorn instance)
+## Live HTTP verification (real seeded database, real running uvicorn)
 
-17/17 checks returned the expected status code: `/health`, `/incident/INC-001`,
-`/incident/INC-001/timeline`, `/graph`, `/exposure`, `/evidence`,
-`/questions/next`, `/recovery-packet`, `/audit`, `/metrics`, `/evaluation`, all
-4 Chaos Lab scenarios, `/demo/reset`, and the live traversal upload check.
-
-**HTTP E2E: 17/17 PASS**
-
-## Chaos Lab scenarios
-
-| Scenario | Result |
+| Check | Result |
 |---|---|
-| `new_beneficiary_burst` | PASS (200, real DB mutation + real detector run) |
-| `executive_impersonation` | PASS |
-| `dormant_vendor_activation` | PASS |
-| `duplicate_payout` | PASS |
+| Unauthenticated request to a tenant-scoped route | 401, as expected |
+| Full Recovery Command lifecycle against the real Arrow Industries incident (₹1Cr payout): propose (Investigator) → blocked approve-without-review (403, wrong permission... actually correctly a permission check) → blocked execute-before-approval (409, wrong state) → review → blocked self-approval → approve (real Approver) → execute (real Administrator) → verify → convergence | **PASS**, every step's status code matched what the state machine and RBAC matrix predict |
+| Frontend's actual bundled demo tokens (Investigator/Approver/Administrator) against a freshly reseeded server | **PASS** — proposed a real command via the exact token the built frontend ships with |
+| Tenant isolation via HTTP: Tenant A's token against Tenant B's incident ID | 404, not data, not a 403-that-confirms-existence |
 
-**CHAOS: 4/4 PASS**
+## Two real bugs caught by testing during this pass (not by inspection)
+
+1. **Tenant sync gap**: the initial tenant-restructuring of `seed.py` only
+   synced Arrow Industries' own payouts into `financial_events`, silently
+   dropping ~4,700 events for Harbor & Co and the 29 background merchants
+   in the same tenant. Caught by comparing `Payouts` count to
+   `FinancialEvents` count after seeding — they should always be equal and
+   weren't.
+2. **Silent JSON query failure**: `AuditEvent.sources.contains([id])` was
+   used to look up a recovery command's audit trail for convergence
+   checking. Verified empirically against SQLite before trusting it, and
+   found it returns **zero rows even for a genuine match** — no error, no
+   warning, just silently wrong. Replaced with a filter on the indexed
+   `incident_id` column plus a Python-side membership check. This is
+   exactly the kind of bug that would have shipped a convergence check
+   that always looked broken (permanently reporting missing audit trail)
+   without ever raising an exception to reveal why.
 
 ## Docker
 
-| Check | Result |
-|---|---|
-| `docker-compose.yml` YAML syntax valid (`yaml.safe_load`) | **PASS** |
-| `DATABASE_URL` string format matches what `backend/app/core/config.py` / SQLAlchemy expect | **PASS** (inspected, consistent) |
-| Frontend `Dockerfile` `ARG`/`ENV` wiring matches the `build.args` in `docker-compose.yml` | **PASS** (inspected, consistent) |
-| **Actual `docker compose up` execution** | **NOT TESTED — no Docker daemon available in this build environment** (`docker: not found`). This is stated here plainly rather than assumed to work. |
-
-## Packaging / hygiene
-
-| Check | Result |
-|---|---|
-| No `.env` files (only `.env.example`) anywhere in the repo | **PASS** (confirmed via `find`) |
-| No secrets grepped in source | **PASS** |
-| `__pycache__`, `.pytest_cache`, `first_hour.db`, test-upload artifacts in `backend/storage/`, `frontend/dist/`, `frontend/node_modules/`, `backend/.venv/` all excluded from the final ZIP | **PASS** |
-
----
+Unchanged from the prior pass: `docker-compose.yml` is YAML-valid and
+internally consistent with the app's config, but **actual `docker compose
+up` execution has still not been tested** — no Docker daemon in this build
+environment (`docker: not found`).
 
 ## Scorecard summary
 
 ```
-SECURITY FIX: PASS
-TRAVERSAL TEST: PASS
-BACKEND TESTS: 78/78
+BACKEND TESTS: 119/119
 FRONTEND BUILD: PASS
 TSC: PASS
-HTTP E2E: 17/17
-CHAOS: 4/4
-DOCKER: NOT TESTED - daemon unavailable
+LIVE RECOVERY COMMAND LIFECYCLE (real HTTP, real seeded incident): PASS
+TENANT ISOLATION (API + DB level): PASS
+RBAC ENFORCEMENT (live + unit): PASS
+CONVERGENCE CHECK (both CONVERGED and STILL_DIVERGENT paths proven): PASS
+DOCKER RUNTIME: NOT TESTED - daemon unavailable
 ```

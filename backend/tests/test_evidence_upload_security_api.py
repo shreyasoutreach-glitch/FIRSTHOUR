@@ -14,9 +14,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.core.database import Base, get_db
+from app.core.tenancy import TenantScopedSession, tenant_scope
 from app.main import app
 import app.api.routes_evidence as routes_evidence
 from app.models import entities as m
+
+TEST_TENANT = "TEN_SEC_TEST"
+TEST_TOKEN = "test_token_investigator"
 
 
 @pytest.fixture()
@@ -24,7 +28,7 @@ def client(tmp_path, monkeypatch):
     db_path = tmp_path / "upload_security_test.db"
     engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
-    TestingSessionLocal = sessionmaker(bind=engine)
+    TestingSessionLocal = sessionmaker(bind=engine, class_=TenantScopedSession)
 
     def override_get_db():
         db = TestingSessionLocal()
@@ -40,13 +44,22 @@ def client(tmp_path, monkeypatch):
     monkeypatch.setattr(routes_evidence.settings, "evidence_storage_dir", str(storage_dir))
 
     db = TestingSessionLocal()
-    db.add(m.Merchant(id="MER_SEC", name="Security Test Co", category="retail"))
+    db.add(m.Tenant(id=TEST_TENANT, name="Security Test Tenant"))
     db.commit()
+    with tenant_scope(db, TEST_TENANT):
+        db.add(m.User(id="USR_SEC_INV", email="investigator@test.demo", display_name="Investigator",
+                      role="INVESTIGATOR", api_token=TEST_TOKEN))
+        db.add(m.Merchant(id="MER_SEC", name="Security Test Co", category="retail"))
+        db.commit()
     db.close()
 
     with TestClient(app) as c:
         yield c, storage_dir
     app.dependency_overrides.clear()
+
+
+def _auth_headers() -> dict:
+    return {"Authorization": f"Bearer {TEST_TOKEN}"}
 
 
 def _all_files_under(base_dir) -> list[str]:
@@ -75,6 +88,7 @@ def test_traversal_filename_cannot_escape_storage_dir(client, malicious_filename
         "/evidence/upload",
         data={"merchant_id": "MER_SEC", "incident_id": "", "source_label": "upload"},
         files={"file": (malicious_filename, io.BytesIO(b"malicious content"), "text/plain")},
+        headers=_auth_headers(),
     )
 
     # The upload must either succeed with a neutralized filename, or be
@@ -103,6 +117,7 @@ def test_normal_filename_still_works_end_to_end(client):
         "/evidence/upload",
         data={"merchant_id": "MER_SEC", "incident_id": "", "source_label": "whatsapp"},
         files={"file": ("whatsapp_export.txt", io.BytesIO(b"Rs 50,000 to Test Vendor"), "text/plain")},
+        headers=_auth_headers(),
     )
     assert resp.status_code == 200
     body = resp.json()
@@ -122,6 +137,7 @@ def test_traversal_filename_response_filename_is_sanitized(client):
         "/evidence/upload",
         data={"merchant_id": "MER_SEC", "incident_id": "", "source_label": "upload"},
         files={"file": ("../../../../etc/cron.d/evil", io.BytesIO(b"x"), "text/plain")},
+        headers=_auth_headers(),
     )
     assert resp.status_code == 200
     body = resp.json()

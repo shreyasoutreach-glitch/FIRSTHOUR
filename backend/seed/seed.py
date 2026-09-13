@@ -1,5 +1,6 @@
 """
-Deterministic synthetic Razorpay universe + the flagship incident.
+Deterministic synthetic Razorpay universe + the flagship incident, across
+two tenants (so multi-tenancy has something real to isolate).
 
 Scale note (documented, not hidden): the architecture doc specifies 500
 merchants / 50,000+ events / 10,000+ payments / 5,000+ payouts as the
@@ -14,7 +15,14 @@ Determinism: everything is anchored to a fixed reference date (not
 `utcnow()`) and a fixed random seed, so `run_seed(db, seed_value=42)`
 produces byte-identical entity IDs, amounts and timestamps every time it
 runs, on any machine, forever. That is what "same seed -> same universe"
-actually requires.
+actually requires. This now extends to tenant/user tokens too -- same seed,
+same tokens, every run.
+
+Tenancy: TEN_NORTHBRIDGE holds the flagship demo (Arrow Industries + the
+Chaos Lab merchant Harbor & Co + half the background merchants).
+TEN_MERIDIAN holds the other half of the background merchants and exists
+specifically so tenant-isolation tests have real cross-tenant data to try
+(and fail) to reach.
 """
 from __future__ import annotations
 
@@ -25,10 +33,11 @@ import statistics
 import uuid
 
 from faker import Faker
-from sqlalchemy.orm import Session
 
 from app.audit.logger import log as audit_log
+from app.core.authz import ROLES
 from app.core.database import Base, engine
+from app.core.tenancy import TenantScopedSession, tenant_scope
 from app.models import entities as m
 from app.services.evidence.pipeline import cross_reference_amount_claim, extract_candidate_claims
 from app.services.incident.detector import create_incident_from_payouts, sync_financial_events_for_payouts
@@ -55,6 +64,9 @@ MERCHANT_CATEGORIES = ["logistics", "d2c_retail", "b2b_manufacturing", "healthca
 PAYOUT_PURPOSES = ["vendor_bill", "refund", "salary", "utility_bill", "commission"]
 PAYOUT_MODES = ["IMPS", "NEFT", "UPI"]
 
+TENANT_NORTHBRIDGE = "TEN_NORTHBRIDGE"
+TENANT_MERIDIAN = "TEN_MERIDIAN"
+
 
 def _rand_time_in_business_hours(rng: random.Random, day: dt.date, start_hour=10, end_hour=18) -> dt.datetime:
     hour = rng.randint(start_hour, end_hour - 1)
@@ -72,19 +84,46 @@ def _short_id(prefix: str) -> str:
     return f"{prefix}_{uuid.uuid4().hex[:10]}"
 
 
-def wipe_all(db: Session) -> None:
-    """Delete in FK-safe order. Used by /demo/reset and repeated seed runs."""
+def _deterministic_token(rng: random.Random) -> str:
+    return "".join(rng.choices("0123456789abcdef", k=48))
+
+
+def wipe_all(db: TenantScopedSession) -> None:
+    """Delete in FK-safe order (tenant-scoped children before Tenant/User
+    parents). Used by /demo/reset and repeated seed runs. Must run on an
+    UNSCOPED session (tenant=None) -- otherwise it would only wipe one
+    tenant's data, which is not what a full reset means."""
     for model in [
-        m.AuditEvent, m.HumanAttestation, m.IncidentEvent, m.Incident,
+        m.AuditEvent, m.HumanAttestation, m.RecoveryCommand, m.IncidentEvent, m.Incident,
         m.EntityLink, m.CommunicationEvent, m.ExtractedClaim, m.EvidenceArtifact,
         m.WebhookEvent, m.FinancialEvent, m.Settlement, m.Transfer, m.Payout,
         m.FundAccount, m.Contact, m.Payment, m.Order, m.Employee, m.Merchant,
+        m.User, m.Tenant,
     ]:
         db.query(model).delete()
     db.commit()
 
 
-def _make_merchant(db: Session, fake: Faker, rng: random.Random, merchant_id: str, name: str,
+def _make_tenant_users(db: TenantScopedSession, rng: random.Random, tenant_id: str) -> dict[str, str]:
+    """One user per role, per tenant. Returns {role: token} for the CLI
+    printout / test convenience -- nothing sensitive, these are demo-only
+    bearer tokens for a system that has no real authentication yet."""
+    tokens: dict[str, str] = {}
+    for role in ROLES:
+        token = _deterministic_token(rng)
+        user = m.User(
+            id=_short_id("USR"), tenant_id=tenant_id,
+            email=f"{role.lower()}@{tenant_id.lower().replace('ten_', '')}.demo",
+            display_name=f"{role.title().replace('_', ' ')} ({tenant_id})",
+            role=role, api_token=token,
+        )
+        db.add(user)
+        tokens[role] = token
+    db.flush()
+    return tokens
+
+
+def _make_merchant(db: TenantScopedSession, fake: Faker, rng: random.Random, merchant_id: str, name: str,
                     category: str, is_flagship: bool = False) -> m.Merchant:
     merchant = m.Merchant(id=merchant_id, name=name, category=category, is_flagship=is_flagship,
                           created_at=HISTORY_START - dt.timedelta(days=rng.randint(30, 400)))
@@ -99,7 +138,7 @@ def _make_merchant(db: Session, fake: Faker, rng: random.Random, merchant_id: st
     return merchant
 
 
-def _make_contact_with_fund_account(db: Session, fake: Faker, rng: random.Random, merchant_id: str,
+def _make_contact_with_fund_account(db: TenantScopedSession, fake: Faker, rng: random.Random, merchant_id: str,
                                      created_at: dt.datetime, contact_type: str = "vendor") -> m.Contact:
     is_company = rng.random() < 0.7
     name = fake.company() if is_company else fake.name()
@@ -125,7 +164,7 @@ def _make_contact_with_fund_account(db: Session, fake: Faker, rng: random.Random
     return contact
 
 
-def _generate_payout_history(db: Session, fake: Faker, rng: random.Random, merchant_id: str,
+def _generate_payout_history(db: TenantScopedSession, fake: Faker, rng: random.Random, merchant_id: str,
                               contacts: list[m.Contact], count: int, median_target: float,
                               spread: float, largest_override: float | None = None) -> list[m.Payout]:
     """Lognormal-ish amounts around median_target using rng.lognormvariate,
@@ -164,7 +203,7 @@ def _generate_payout_history(db: Session, fake: Faker, rng: random.Random, merch
     return payouts
 
 
-def _generate_payments(db: Session, fake: Faker, rng: random.Random, merchant_id: str, count: int) -> None:
+def _generate_payments(db: TenantScopedSession, fake: Faker, rng: random.Random, merchant_id: str, count: int) -> None:
     for i in range(count):
         day = _random_day(rng)
         created_at = _rand_time_in_business_hours(rng, day, start_hour=7, end_hour=23)
@@ -182,7 +221,7 @@ def _generate_payments(db: Session, fake: Faker, rng: random.Random, merchant_id
     db.flush()
 
 
-def _generate_transfers_and_settlements(db: Session, rng: random.Random, merchant_id: str) -> None:
+def _generate_transfers_and_settlements(db: TenantScopedSession, rng: random.Random, merchant_id: str) -> None:
     for _ in range(rng.randint(3, 8)):
         day = _random_day(rng)
         db.add(m.Transfer(
@@ -205,7 +244,7 @@ def _generate_transfers_and_settlements(db: Session, rng: random.Random, merchan
     db.flush()
 
 
-def _build_flagship_incident(db: Session, rng: random.Random, arrow: m.Merchant,
+def _build_flagship_incident(db: TenantScopedSession, rng: random.Random, arrow: m.Merchant,
                               arrow_contacts: list[m.Contact]) -> str:
     incident_id = "INC-001"
     employees = db.query(m.Employee).filter(m.Employee.merchant_id == arrow.id).all()
@@ -313,75 +352,117 @@ def _build_flagship_incident(db: Session, rng: random.Random, arrow: m.Merchant,
     return incident.id
 
 
-def run_seed(db: Session, seed_value: int = 42) -> str:
+def run_seed(db: TenantScopedSession, seed_value: int = 42) -> dict:
     Base.metadata.create_all(bind=engine)
+    db.set_tenant(None)
     wipe_all(db)
 
     rng = random.Random(seed_value)
     Faker.seed(seed_value)
     fake = Faker()
 
-    # --- Flagship merchant: Arrow Industries ---------------------------------
-    arrow = _make_merchant(db, fake, rng, "MER_ARROW", "Arrow Industries", "logistics", is_flagship=True)
-    arrow_contacts = [
-        _make_contact_with_fund_account(db, fake, rng, arrow.id,
-                                         HISTORY_START + dt.timedelta(days=rng.randint(0, HISTORY_DAYS - 5)))
-        for _ in range(ARROW_CONTACT_COUNT)
-    ]
-    _generate_payout_history(db, fake, rng, arrow.id, arrow_contacts, ARROW_HISTORICAL_PAYOUTS,
-                              median_target=18400, spread=0.35, largest_override=8_70_000.0)
-    _generate_payments(db, fake, rng, arrow.id, ARROW_HISTORICAL_PAYOUTS * 2)
-    _generate_transfers_and_settlements(db, rng, arrow.id)
+    tenant_a = m.Tenant(id=TENANT_NORTHBRIDGE, name="Northbridge Financial")
+    tenant_b = m.Tenant(id=TENANT_MERIDIAN, name="Meridian Payments")
+    db.add(tenant_a)
+    db.add(tenant_b)
+    db.commit()
 
-    # --- Chaos Lab merchant: Harbor & Co (kept clean until INJECT INCIDENT) --
-    harbor = _make_merchant(db, fake, rng, "MER_HARBOR", "Harbor & Co", "d2c_retail", is_flagship=False)
-    harbor_contacts = [
-        _make_contact_with_fund_account(db, fake, rng, harbor.id,
-                                         HISTORY_START + dt.timedelta(days=rng.randint(0, HISTORY_DAYS - 5)))
-        for _ in range(HARBOR_CONTACT_COUNT)
-    ]
-    _generate_payout_history(db, fake, rng, harbor.id, harbor_contacts, HARBOR_HISTORICAL_PAYOUTS,
-                              median_target=9600, spread=0.4, largest_override=3_20_000.0)
-    _generate_payments(db, fake, rng, harbor.id, HARBOR_HISTORICAL_PAYOUTS * 2)
-    _generate_transfers_and_settlements(db, rng, harbor.id)
+    tokens_by_tenant: dict[str, dict[str, str]] = {}
 
-    # --- Remaining merchants: breadth for graph/entity-resolution realism ---
-    for i in range(OTHER_MERCHANT_COUNT):
-        merchant_id = f"MER_{i:04d}"
-        name = fake.company()
-        category = rng.choice(MERCHANT_CATEGORIES)
-        merchant = _make_merchant(db, fake, rng, merchant_id, name, category)
-        contact_count = rng.randint(*OTHER_MERCHANT_CONTACT_RANGE)
-        contacts = [
-            _make_contact_with_fund_account(db, fake, rng, merchant.id,
+    # --- Tenant A: Northbridge Financial (the flagship demo tenant) --------
+    with tenant_scope(db, tenant_a.id):
+        tokens_by_tenant[tenant_a.id] = _make_tenant_users(db, rng, tenant_a.id)
+
+        arrow = _make_merchant(db, fake, rng, "MER_ARROW", "Arrow Industries", "logistics", is_flagship=True)
+        arrow_contacts = [
+            _make_contact_with_fund_account(db, fake, rng, arrow.id,
                                              HISTORY_START + dt.timedelta(days=rng.randint(0, HISTORY_DAYS - 5)))
-            for _ in range(contact_count)
+            for _ in range(ARROW_CONTACT_COUNT)
         ]
-        payout_count = rng.randint(*OTHER_MERCHANT_PAYOUT_RANGE)
-        median = rng.uniform(2500, 60000)
-        _generate_payout_history(db, fake, rng, merchant.id, contacts, payout_count,
-                                  median_target=median, spread=rng.uniform(0.3, 0.6))
-        _generate_payments(db, fake, rng, merchant.id, payout_count * 2)
-        if rng.random() < 0.6:
-            _generate_transfers_and_settlements(db, rng, merchant.id)
-        if i % 10 == 0:
-            db.commit()
+        _generate_payout_history(db, fake, rng, arrow.id, arrow_contacts, ARROW_HISTORICAL_PAYOUTS,
+                                  median_target=18400, spread=0.35, largest_override=8_70_000.0)
+        _generate_payments(db, fake, rng, arrow.id, ARROW_HISTORICAL_PAYOUTS * 2)
+        _generate_transfers_and_settlements(db, rng, arrow.id)
 
-    db.commit()
+        harbor = _make_merchant(db, fake, rng, "MER_HARBOR", "Harbor & Co", "d2c_retail", is_flagship=False)
+        harbor_contacts = [
+            _make_contact_with_fund_account(db, fake, rng, harbor.id,
+                                             HISTORY_START + dt.timedelta(days=rng.randint(0, HISTORY_DAYS - 5)))
+            for _ in range(HARBOR_CONTACT_COUNT)
+        ]
+        _generate_payout_history(db, fake, rng, harbor.id, harbor_contacts, HARBOR_HISTORICAL_PAYOUTS,
+                                  median_target=9600, spread=0.4, largest_override=3_20_000.0)
+        _generate_payments(db, fake, rng, harbor.id, HARBOR_HISTORICAL_PAYOUTS * 2)
+        _generate_transfers_and_settlements(db, rng, harbor.id)
 
-    # Canonicalize every payout/payment into financial_events (Arrow's incident
-    # payouts are already synced above; this covers all historical payouts).
-    all_payouts = db.query(m.Payout).all()
-    sync_financial_events_for_payouts(db, all_payouts)
-    db.commit()
+        half = OTHER_MERCHANT_COUNT // 2
+        for i in range(half):
+            merchant_id = f"MER_A{i:04d}"
+            merchant = _make_merchant(db, fake, rng, merchant_id, fake.company(), rng.choice(MERCHANT_CATEGORIES))
+            contacts = [
+                _make_contact_with_fund_account(db, fake, rng, merchant.id,
+                                                 HISTORY_START + dt.timedelta(days=rng.randint(0, HISTORY_DAYS - 5)))
+                for _ in range(rng.randint(*OTHER_MERCHANT_CONTACT_RANGE))
+            ]
+            payout_count = rng.randint(*OTHER_MERCHANT_PAYOUT_RANGE)
+            _generate_payout_history(db, fake, rng, merchant.id, contacts, payout_count,
+                                      median_target=rng.uniform(2500, 60000), spread=rng.uniform(0.3, 0.6))
+            _generate_payments(db, fake, rng, merchant.id, payout_count * 2)
+            if rng.random() < 0.6:
+                _generate_transfers_and_settlements(db, rng, merchant.id)
+            if i % 10 == 0:
+                db.commit()
+        db.commit()
 
-    flagship_incident_id = _build_flagship_incident(db, rng, arrow, arrow_contacts)
+        tenant_a_payouts = db.query(m.Payout).all()  # scoped to Tenant A -> Arrow + Harbor + all Tenant-A background merchants
+        sync_financial_events_for_payouts(db, tenant_a_payouts)
+        db.commit()
 
-    audit_log(db, incident_id="", actor="SYSTEM", event_type="DATASET_SEEDED",
-              summary=f"Synthetic universe seeded (seed={seed_value})",
-              sources=[], detail={"merchants": OTHER_MERCHANT_COUNT + 2})
-    db.commit()
-    return flagship_incident_id
+        flagship_incident_id = _build_flagship_incident(db, rng, arrow, arrow_contacts)
+
+        audit_log(db, incident_id="", actor="SYSTEM", event_type="DATASET_SEEDED",
+                  summary=f"Synthetic universe seeded for {tenant_a.name} (seed={seed_value})",
+                  sources=[], detail={"merchants": half + 2})
+        db.commit()
+
+    # --- Tenant B: Meridian Payments (isolation-test fodder, no incidents) -
+    with tenant_scope(db, tenant_b.id):
+        tokens_by_tenant[tenant_b.id] = _make_tenant_users(db, rng, tenant_b.id)
+
+        remaining = OTHER_MERCHANT_COUNT - half
+        for i in range(remaining):
+            merchant_id = f"MER_B{i:04d}"
+            merchant = _make_merchant(db, fake, rng, merchant_id, fake.company(), rng.choice(MERCHANT_CATEGORIES))
+            contacts = [
+                _make_contact_with_fund_account(db, fake, rng, merchant.id,
+                                                 HISTORY_START + dt.timedelta(days=rng.randint(0, HISTORY_DAYS - 5)))
+                for _ in range(rng.randint(*OTHER_MERCHANT_CONTACT_RANGE))
+            ]
+            payout_count = rng.randint(*OTHER_MERCHANT_PAYOUT_RANGE)
+            _generate_payout_history(db, fake, rng, merchant.id, contacts, payout_count,
+                                      median_target=rng.uniform(2500, 60000), spread=rng.uniform(0.3, 0.6))
+            _generate_payments(db, fake, rng, merchant.id, payout_count * 2)
+            if rng.random() < 0.6:
+                _generate_transfers_and_settlements(db, rng, merchant.id)
+            if i % 10 == 0:
+                db.commit()
+        db.commit()
+
+        all_b_payouts = db.query(m.Payout).all()
+        sync_financial_events_for_payouts(db, all_b_payouts)
+        db.commit()
+
+        audit_log(db, incident_id="", actor="SYSTEM", event_type="DATASET_SEEDED",
+                  summary=f"Synthetic universe seeded for {tenant_b.name} (seed={seed_value})",
+                  sources=[], detail={"merchants": remaining})
+        db.commit()
+
+    db.set_tenant(None)
+    return {
+        "flagship_incident_id": flagship_incident_id,
+        "tenants": {tenant_a.id: tenant_a.name, tenant_b.id: tenant_b.name},
+        "tokens_by_tenant": tokens_by_tenant,
+    }
 
 
 if __name__ == "__main__":
@@ -389,17 +470,26 @@ if __name__ == "__main__":
 
     session = SessionLocal()
     try:
-        incident_id = run_seed(session, seed_value=42)
+        result = run_seed(session, seed_value=42)
+        session.set_tenant(None)
         merchant_count = session.query(m.Merchant).count()
         payout_count = session.query(m.Payout).count()
         payment_count = session.query(m.Payment).count()
         fevent_count = session.query(m.FinancialEvent).count()
         arrow_payouts = [p.amount for p in session.query(m.Payout).filter(
             m.Payout.merchant_id == "MER_ARROW", m.Payout.is_injected.is_(False)).all()]
-        print(f"Seed complete. Flagship incident: {incident_id}")
+        print(f"Seed complete. Flagship incident: {result['flagship_incident_id']}")
+        print(f"Tenants: {result['tenants']}")
         print(f"Merchants={merchant_count} Payments={payment_count} Payouts={payout_count} "
               f"FinancialEvents={fevent_count}")
         print(f"Arrow Industries baseline: median={statistics.median(arrow_payouts):,.0f} "
               f"largest={max(arrow_payouts):,.0f} beneficiaries={ARROW_CONTACT_COUNT}")
+        print()
+        print("Demo bearer tokens (seed=42, deterministic -- not real secrets):")
+        for tenant_id, role_tokens in result["tokens_by_tenant"].items():
+            print(f"  {tenant_id}:")
+            for role, token in role_tokens.items():
+                print(f"    {role:<18} {token}")
     finally:
         session.close()
+

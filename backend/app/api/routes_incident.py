@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.audit.logger import log as audit_log
-from app.core.database import get_db
+from app.core.authz import get_tenant_db, require_permission
 from app.models import entities as m
 from app.repositories import incident_repo
 from app.schemas.schemas import AttestationRequest, AttestationResponse, NextQuestionResponse
@@ -36,13 +36,13 @@ def _serialize_incident(incident: m.Incident) -> dict:
 
 
 @router.get("/incidents")
-def list_incidents(db: Session = Depends(get_db)):
+def list_incidents(db: Session = Depends(get_tenant_db)):
     incidents = db.query(m.Incident).order_by(m.Incident.created_at.desc()).all()
     return [_serialize_incident(i) for i in incidents]
 
 
 @router.get("/incident/{incident_id}")
-def get_incident(incident_id: str, db: Session = Depends(get_db)):
+def get_incident(incident_id: str, db: Session = Depends(get_tenant_db)):
     incident = incident_repo.get_incident(db, incident_id)
     if incident is None:
         raise HTTPException(404, "incident not found")
@@ -85,7 +85,7 @@ def get_incident(incident_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/incident/{incident_id}/timeline")
-def get_timeline(incident_id: str, db: Session = Depends(get_db)):
+def get_timeline(incident_id: str, db: Session = Depends(get_tenant_db)):
     incident = incident_repo.get_incident(db, incident_id)
     if incident is None:
         raise HTTPException(404, "incident not found")
@@ -132,21 +132,21 @@ def get_timeline(incident_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/incident/{incident_id}/graph")
-def get_graph(incident_id: str, db: Session = Depends(get_db)):
+def get_graph(incident_id: str, db: Session = Depends(get_tenant_db)):
     if incident_repo.get_incident(db, incident_id) is None:
         raise HTTPException(404, "incident not found")
     return build_incident_graph(db, incident_id)
 
 
 @router.get("/incident/{incident_id}/exposure")
-def get_exposure(incident_id: str, db: Session = Depends(get_db)):
+def get_exposure(incident_id: str, db: Session = Depends(get_tenant_db)):
     if incident_repo.get_incident(db, incident_id) is None:
         raise HTTPException(404, "incident not found")
     return compute_exposure(db, incident_id)
 
 
 @router.get("/incident/{incident_id}/evidence")
-def get_evidence(incident_id: str, db: Session = Depends(get_db)):
+def get_evidence(incident_id: str, db: Session = Depends(get_tenant_db)):
     if incident_repo.get_incident(db, incident_id) is None:
         raise HTTPException(404, "incident not found")
     comms = incident_repo.list_communications(db, incident_id)
@@ -172,7 +172,7 @@ def get_evidence(incident_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/incident/{incident_id}/questions/next", response_model=NextQuestionResponse)
-def get_next_question(incident_id: str, db: Session = Depends(get_db)):
+def get_next_question(incident_id: str, db: Session = Depends(get_tenant_db)):
     incident = incident_repo.get_incident(db, incident_id)
     if incident is None:
         raise HTTPException(404, "incident not found")
@@ -200,7 +200,8 @@ def get_next_question(incident_id: str, db: Session = Depends(get_db)):
 
 
 @router.post("/incident/{incident_id}/attestation", response_model=AttestationResponse)
-def post_attestation(incident_id: str, body: AttestationRequest, db: Session = Depends(get_db)):
+def post_attestation(incident_id: str, body: AttestationRequest, db: Session = Depends(get_tenant_db),
+                     user: m.User = Depends(require_permission("INVESTIGATE"))):
     incident = incident_repo.get_incident(db, incident_id)
     if incident is None:
         raise HTTPException(404, "incident not found")
@@ -227,7 +228,8 @@ def post_attestation(incident_id: str, body: AttestationRequest, db: Session = D
     db.add(attestation)
     db.flush()
 
-    audit_log(db, incident_id=incident_id, actor="HUMAN", event_type="ATTESTATION_ADDED",
+    audit_log(db, incident_id=incident_id, actor="HUMAN", actor_user_id=user.id,
+              event_type="ATTESTATION_ADDED",
               summary=f"{matched.affected_predicate} = {body.answer}",
               sources=[attestation.id], detail={"question": matched.question_text})
 
@@ -257,7 +259,7 @@ def post_attestation(incident_id: str, body: AttestationRequest, db: Session = D
 
 
 @router.get("/incident/{incident_id}/recovery-packet")
-def get_recovery_packet(incident_id: str, db: Session = Depends(get_db)):
+def get_recovery_packet(incident_id: str, db: Session = Depends(get_tenant_db)):
     if incident_repo.get_incident(db, incident_id) is None:
         raise HTTPException(404, "incident not found")
     packet = build_recovery_packet(db, incident_id)
@@ -274,7 +276,7 @@ def get_recovery_packet(incident_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/incident/{incident_id}/audit")
-def get_audit(incident_id: str, db: Session = Depends(get_db)):
+def get_audit(incident_id: str, db: Session = Depends(get_tenant_db)):
     events = incident_repo.list_audit_events(db, incident_id)
     return [{
         "id": e.id, "actor": e.actor, "event_type": e.event_type, "summary": e.summary,

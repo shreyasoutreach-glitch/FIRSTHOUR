@@ -10,15 +10,20 @@ from app.models import entities as m
 
 
 def log(db: Session, *, incident_id: str, actor: str, event_type: str, summary: str,
-        sources: list[str] | None = None, detail: dict | None = None) -> m.AuditEvent:
+        sources: list[str] | None = None, detail: dict | None = None,
+        actor_user_id: str = "", before_state: dict | None = None,
+        after_state: dict | None = None) -> m.AuditEvent:
     event = m.AuditEvent(
         id=f"AUD_{uuid.uuid4().hex[:12]}",
         incident_id=incident_id,
         actor=actor,
+        actor_user_id=actor_user_id,
         event_type=event_type,
         summary=summary,
         sources=sources or [],
         detail=detail or {},
+        before_state=before_state or {},
+        after_state=after_state or {},
     )
     db.add(event)
     db.flush()

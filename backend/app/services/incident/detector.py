@@ -33,6 +33,11 @@ from app.services.incident.scoring import (
 
 
 def sync_financial_events_for_payouts(db: Session, payouts: list[m.Payout]) -> list[m.FinancialEvent]:
+    """Explicitly propagates tenant_id from each source payout rather than
+    relying on the session's current tenant context -- this function is
+    sometimes called with a batch of payouts spanning multiple tenants (the
+    seed script's final canonicalization pass), so it cannot assume a single
+    session-wide tenant applies to every row it creates."""
     created = []
     for p in payouts:
         existing = db.get(m.FinancialEvent, f"FEV_PYO_{p.id}")
@@ -40,6 +45,7 @@ def sync_financial_events_for_payouts(db: Session, payouts: list[m.Payout]) -> l
             continue
         fe = m.FinancialEvent(
             id=f"FEV_PYO_{p.id}",
+            tenant_id=p.tenant_id,
             event_type="payout",
             source_system="razorpay",
             source_record_id=p.id,

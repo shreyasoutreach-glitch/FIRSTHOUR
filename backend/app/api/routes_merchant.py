@@ -3,14 +3,14 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
+from app.core.authz import get_tenant_db
 from app.models import entities as m
 
 router = APIRouter(tags=["merchant"])
 
 
 @router.get("/merchant/{merchant_id}/connection")
-def get_connection_status(merchant_id: str, db: Session = Depends(get_db)):
+def get_connection_status(merchant_id: str, db: Session = Depends(get_tenant_db)):
     merchant = db.get(m.Merchant, merchant_id)
     if merchant is None:
         raise HTTPException(404, "merchant not found")
@@ -25,7 +25,7 @@ def get_connection_status(merchant_id: str, db: Session = Depends(get_db)):
 
 
 @router.get("/merchant/{merchant_id}/baseline")
-def get_baseline(merchant_id: str, db: Session = Depends(get_db)):
+def get_baseline(merchant_id: str, db: Session = Depends(get_tenant_db)):
     from app.services.incident.detector import build_baseline
 
     baseline = build_baseline(db, merchant_id)

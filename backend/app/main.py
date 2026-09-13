@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import routes_demo, routes_evidence, routes_incident, routes_merchant, routes_metrics
+from app.api import routes_demo, routes_evidence, routes_incident, routes_merchant, routes_metrics, routes_recovery
 from app.core.config import get_settings
 from app.core.database import Base, engine
 
@@ -39,6 +39,7 @@ app.include_router(routes_evidence.router)
 app.include_router(routes_demo.router)
 app.include_router(routes_metrics.router)
 app.include_router(routes_merchant.router)
+app.include_router(routes_recovery.router)
 
 
 @app.get("/")

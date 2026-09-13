@@ -7,8 +7,8 @@ from fastapi import APIRouter, Depends, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.audit.logger import log as audit_log
+from app.core.authz import get_tenant_db, require_permission
 from app.core.config import get_settings
-from app.core.database import get_db
 from app.models import entities as m
 from app.services.evidence.pipeline import (
     cross_reference_amount_claim,
@@ -29,7 +29,8 @@ async def upload_evidence(
     merchant_id: str = Form(...),
     incident_id: str = Form(""),
     source_label: str = Form("upload"),
-    db: Session = Depends(get_db),
+    db: Session = Depends(get_tenant_db),
+    _user: m.User = Depends(require_permission("INVESTIGATE")),
 ):
     data = await file.read()
     if not validate_mime(file.content_type or "application/octet-stream"):
@@ -82,7 +83,8 @@ async def upload_evidence(
 
 
 @router.post("/evidence/analyze")
-def analyze_evidence(artifact_id: str = Form(...), db: Session = Depends(get_db)):
+def analyze_evidence(artifact_id: str = Form(...), db: Session = Depends(get_tenant_db),
+                     _user: m.User = Depends(require_permission("INVESTIGATE"))):
     artifact = db.get(m.EvidenceArtifact, artifact_id)
     if artifact is None:
         raise HTTPException(404, "artifact not found")

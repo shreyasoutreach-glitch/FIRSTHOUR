@@ -12,6 +12,7 @@ import uuid
 from sqlalchemy.orm import Session
 
 from app.audit.logger import log as audit_log
+from app.core.tenancy import tenant_scope
 from app.models import entities as m
 from app.services.incident.detector import create_incident_from_payouts
 
@@ -78,6 +79,14 @@ def _ensure_artifact(db: Session, merchant_id: str, incident_id: str, filename: 
 
 
 def inject_scenario(db: Session, scenario: str, merchant_id: str = CHAOS_MERCHANT_ID) -> dict:
+    merchant = db.get(m.Merchant, merchant_id)
+    if merchant is None:
+        raise ValueError(f"Unknown merchant: {merchant_id}")
+    # db arrives here unscoped (from get_system_db) since we don't know the
+    # tenant until we've looked up the merchant. Every row this function
+    # creates from here on auto-stamps to the merchant's own tenant.
+    db.set_tenant(merchant.tenant_id)
+
     now = dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
     incident_id = f"INC_CHAOS_{uuid.uuid4().hex[:6].upper()}"
     audit_trail: list[str] = []
