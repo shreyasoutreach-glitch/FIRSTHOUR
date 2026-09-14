@@ -4,20 +4,20 @@ export default {
   theme: {
     extend: {
       colors: {
-        forest: "#1D1D1F",     // Apple typography
-        charcoal: "#000000",   // True black
-        ivory: "#F5F5F7",      // Apple system background
-        parchment: "#FFFFFF",  // Apple elevated surfaces (cards)
-        gold: "#0066CC",       // Royal / Apple system blue
-        champagne: "#0071E3",  // Apple vibrant blue
-        emerald: "#34C759",    // Apple success green
-        vermillion: "#FF3B30", // Apple destructive red
-        amber: "#FF9500",      // Apple warning orange
+        graphite: "#000000",     // True OLED Black
+        surface: "#1C1C1E",      // Apple iOS Card background
+        surface_raised: "#2C2C2E", // Apple elevated Card
+        titanium: "#0A84FF",     // Apple iOS Blue
+        text_primary: "#FFFFFF", // True White
+        text_secondary: "#8E8E93", // Apple System Gray
+        emerald: "#32D74B",      // Apple iOS Green Dark
+        vermillion: "#FF453A",   // Apple iOS Red Dark
+        amber: "#FF9F0A",        // Apple iOS Orange Dark
       },
       fontFamily: {
-        display: ["-apple-system", "BlinkMacSystemFont", "SF Pro Display", "Segoe UI", "sans-serif"],
-        ui: ["-apple-system", "BlinkMacSystemFont", "SF Pro Text", "Segoe UI", "sans-serif"],
-        label: ["-apple-system", "BlinkMacSystemFont", "SF Pro Text", "Segoe UI", "sans-serif"],
+        display: ["Inter", "-apple-system", "BlinkMacSystemFont", "SF Pro Display", "Segoe UI", "sans-serif"],
+        ui: ["Inter", "-apple-system", "BlinkMacSystemFont", "SF Pro Text", "Segoe UI", "sans-serif"],
+        label: ["Inter", "-apple-system", "BlinkMacSystemFont", "SF Pro Text", "Segoe UI", "sans-serif"],
       },
       maxWidth: {
         canvas: "1440px",
@@ -27,8 +27,8 @@ export default {
         400: "400ms",
       },
       boxShadow: {
-        paper: "0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03)",
-        raised: "0 8px 24px rgba(0, 0, 0, 0.08)",
+        paper: "0 1px 3px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.12)",
+        raised: "0 8px 24px rgba(0, 0, 0, 0.4)",
       },
     },
   },

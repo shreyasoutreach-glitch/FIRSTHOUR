@@ -1,0 +1,1119 @@
+{
+  "fp": [
+    {
+      "account": "acct_0037",
+      "amount": 12000.0,
+      "median": 800.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0002",
+      "amount": 3500.0,
+      "median": 700.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0046",
+      "amount": 2500.0,
+      "median": 450.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0043",
+      "amount": 65000.0,
+      "median": 25000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0047",
+      "amount": 4500.0,
+      "median": 800.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0033",
+      "amount": 90000.0,
+      "median": 18000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0001",
+      "amount": 8500.0,
+      "median": 1200.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0015",
+      "amount": 2500.0,
+      "median": 450.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0017",
+      "amount": 25000.0,
+      "median": 8000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0052",
+      "amount": 1200.0,
+      "median": 450.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0009",
+      "amount": 12000.0,
+      "median": 800.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0021",
+      "amount": 3500.0,
+      "median": 700.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0058",
+      "amount": 4500.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0054",
+      "amount": 65000.0,
+      "median": 25000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0027",
+      "amount": 2500.0,
+      "median": 800.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0038",
+      "amount": 25000.0,
+      "median": 2000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0030",
+      "amount": 25000.0,
+      "median": 8000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0019",
+      "amount": 4500.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0060",
+      "amount": 12000.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0013",
+      "amount": 90000.0,
+      "median": 12000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0019",
+      "amount": 25000.0,
+      "median": 2000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0019",
+      "amount": 8000.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0002",
+      "amount": 2500.0,
+      "median": 700.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0013",
+      "amount": 40000.0,
+      "median": 12000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0023",
+      "amount": 90000.0,
+      "median": 12000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0028",
+      "amount": 8000.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0039",
+      "amount": 12000.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0047",
+      "amount": 12000.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0016",
+      "amount": 5000.0,
+      "median": 450.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0059",
+      "amount": 25000.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0013",
+      "amount": 90000.0,
+      "median": 12000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0026",
+      "amount": 5000.0,
+      "median": 1200.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0018",
+      "amount": 25000.0,
+      "median": 3500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0016",
+      "amount": 2500.0,
+      "median": 575.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0058",
+      "amount": 4500.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0013",
+      "amount": 90000.0,
+      "median": 12000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0042",
+      "amount": 5000.0,
+      "median": 1200.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0015",
+      "amount": 8500.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 3500.0,
+      "median": 450.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0038",
+      "amount": 12000.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0018",
+      "amount": 25000.0,
+      "median": 4500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0058",
+      "amount": 8000.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0028",
+      "amount": 25000.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0037",
+      "amount": 12000.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0028",
+      "amount": 4500.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0058",
+      "amount": 25000.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0027",
+      "amount": 25000.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0052",
+      "amount": 1800.0,
+      "median": 450.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0028",
+      "amount": 12000.0,
+      "median": 2000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0059",
+      "amount": 25000.0,
+      "median": 2000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0059",
+      "amount": 1500.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0059",
+      "amount": 800.0,
+      "median": 2000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0059",
+      "amount": 2500.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0040",
+      "amount": 25000.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0040",
+      "amount": 2500.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0036",
+      "amount": 8500.0,
+      "median": 950.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0059",
+      "amount": 800.0,
+      "median": 2000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0040",
+      "amount": 12000.0,
+      "median": 2000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0040",
+      "amount": 800.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0047",
+      "amount": 25000.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0058",
+      "amount": 25000.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0052",
+      "amount": 8500.0,
+      "median": 575.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0052",
+      "amount": 2500.0,
+      "median": 700.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0058",
+      "amount": 2500.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0052",
+      "amount": 5000.0,
+      "median": 950.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0027",
+      "amount": 8000.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0052",
+      "amount": 8500.0,
+      "median": 1200.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0059",
+      "amount": 12000.0,
+      "median": 2000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0049",
+      "amount": 25000.0,
+      "median": 1150.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0058",
+      "amount": 12000.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0027",
+      "amount": 25000.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0007",
+      "amount": 25000.0,
+      "median": 3500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0007",
+      "amount": 2500.0,
+      "median": 4500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0057",
+      "amount": 12000.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0040",
+      "amount": 12000.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0057",
+      "amount": 1500.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0049",
+      "amount": 25000.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0027",
+      "amount": 12000.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0029",
+      "amount": 25000.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0027",
+      "amount": 25000.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 2500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 3500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0028",
+      "amount": 12000.0,
+      "median": 1500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0017",
+      "amount": 125000.0,
+      "median": 8000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 1200.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0012",
+      "amount": 3500.0,
+      "median": 2500.0,
+      "score": 0.85,
+      "action": "BLOCK_RECOMMENDED"
+    },
+    {
+      "account": "acct_0021",
+      "amount": 8500.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0033",
+      "amount": 65000.0,
+      "median": 65000.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0028",
+      "amount": 85000.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0028",
+      "amount": 120000.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0028",
+      "amount": 175000.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    },
+    {
+      "account": "acct_0028",
+      "amount": 95000.0,
+      "median": 2500.0,
+      "score": 0.75,
+      "action": "HOLD_AND_REVIEW"
+    }
+  ],
+  "fn": [
+    {
+      "account": "acct_0041",
+      "amount": 750.0,
+      "median": 5000.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0041",
+      "amount": 750.0,
+      "median": 3500.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0041",
+      "amount": 750.0,
+      "median": 3500.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0041",
+      "amount": 750.0,
+      "median": 3500.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0041",
+      "amount": 750.0,
+      "median": 3500.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0041",
+      "amount": 750.0,
+      "median": 3000.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0041",
+      "amount": 750.0,
+      "median": 2500.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0041",
+      "amount": 750.0,
+      "median": 2500.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0041",
+      "amount": 750.0,
+      "median": 2150.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0041",
+      "amount": 750.0,
+      "median": 2150.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0041",
+      "amount": 750.0,
+      "median": 1800.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0041",
+      "amount": 750.0,
+      "median": 1800.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0041",
+      "amount": 750.0,
+      "median": 1800.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0021",
+      "amount": 0.0,
+      "median": 1800.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0021",
+      "amount": 0.0,
+      "median": 1800.0,
+      "score": 0.09,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0021",
+      "amount": 0.0,
+      "median": 1800.0,
+      "score": 0.09,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0021",
+      "amount": 0.0,
+      "median": 1800.0,
+      "score": 0.39,
+      "action": "STEP_UP"
+    },
+    {
+      "account": "acct_0021",
+      "amount": 0.0,
+      "median": 1800.0,
+      "score": 0.44999999999999996,
+      "action": "STEP_UP"
+    },
+    {
+      "account": "acct_0033",
+      "amount": 0.0,
+      "median": 52500.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0055",
+      "amount": 0.0,
+      "median": 1800.0,
+      "score": 0.09,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0055",
+      "amount": 0.0,
+      "median": 1800.0,
+      "score": 0.39,
+      "action": "STEP_UP"
+    },
+    {
+      "account": "acct_0018",
+      "amount": 19000.0,
+      "median": 8000.0,
+      "score": 0.0,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0027",
+      "amount": 19500.0,
+      "median": 2500.0,
+      "score": 0.1,
+      "action": "ALLOW"
+    },
+    {
+      "account": "acct_0055",
+      "amount": 0.0,
+      "median": 1800.0,
+      "score": 0.51,
+      "action": "STEP_UP"
+    }
+  ]
+}
