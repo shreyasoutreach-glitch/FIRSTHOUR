@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { api } from "../lib/api";
@@ -36,20 +36,20 @@ export default function Reconstruction() {
         <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-4">
           Putting the story together.
         </h1>
-        <p className="text-[15px] leading-relaxed text-forest/70">
+        <p className="text-[15px] leading-relaxed text-text_primary/70">
           We&rsquo;re linking what you gave us to what your Razorpay records already show.
         </p>
       </div>
 
       {error && <ErrorBanner message={error} onRetry={reload} />}
-      {loading && <p className="text-forest/40 text-[14px] mb-8">Loading reconstruction&hellip;</p>}
+      {loading && <p className="text-text_primary/40 text-[14px] mb-8">Loading reconstruction&hellip;</p>}
 
       {!error && !loading && (
       <>
-      <div className="flex gap-8 mb-10 text-[13px] font-ui text-forest/60">
-        <span><strong className="text-forest font-display text-[18px] mr-1">{evidence?.artifacts?.length ?? 0}</strong>evidence</span>
-        <span><strong className="text-forest font-display text-[18px] mr-1">{payoutEvents.length}</strong>financial events</span>
-        <span><strong className="text-forest font-display text-[18px] mr-1">{headline?.beneficiary_count ?? 0}</strong>beneficiaries</span>
+      <div className="flex gap-8 mb-10 text-[13px] font-ui text-text_primary/60">
+        <span><strong className="text-text_primary font-display text-[18px] mr-1">{evidence?.artifacts?.length ?? 0}</strong>evidence</span>
+        <span><strong className="text-text_primary font-display text-[18px] mr-1">{payoutEvents.length}</strong>financial events</span>
+        <span><strong className="text-text_primary font-display text-[18px] mr-1">{headline?.beneficiary_count ?? 0}</strong>beneficiaries</span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -58,7 +58,7 @@ export default function Reconstruction() {
           <div className="space-y-3">
             {communications.map((c: any) => (
               <div key={c.id} className="paper-card px-4 py-3">
-                <p className="text-[11px] uppercase tracking-wide text-forest/40 mb-1">{c.channel}</p>
+                <p className="text-[11px] uppercase tracking-wide text-text_primary/40 mb-1">{c.channel}</p>
                 <p className="text-[13px] leading-snug">{c.body_text}</p>
               </div>
             ))}
@@ -94,9 +94,9 @@ export default function Reconstruction() {
               <div key={e.id} className="paper-card px-4 py-3">
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-display text-[16px]">{formatINR(e.amount)}</span>
-                  <span className="text-[11px] text-forest/40">{formatTime(e.timestamp)}</span>
+                  <span className="text-[11px] text-text_primary/40">{formatTime(e.timestamp)}</span>
                 </div>
-                <p className="text-[12px] text-forest/50">{e.source_reference} &middot; {e.beneficiary}</p>
+                <p className="text-[12px] text-text_primary/50">{e.source_reference} &middot; {e.beneficiary}</p>
               </div>
             ))}
           </div>
@@ -116,3 +116,4 @@ export default function Reconstruction() {
     </div>
   );
 }
+

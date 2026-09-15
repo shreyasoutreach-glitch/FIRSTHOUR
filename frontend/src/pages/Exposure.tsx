@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useCase } from "../lib/CaseContext";
@@ -11,7 +11,7 @@ import { StepFooter } from "../components/AppShell";
 const CATEGORIES = [
   { key: "confirmed_moved", label: "Confirmed moved", color: "text-vermillion", border: "border-vermillion/30" },
   { key: "pending", label: "Pending", color: "text-amber", border: "border-amber/30" },
-  { key: "attempted", label: "Attempted", color: "text-forest/60", border: "border-forest/15" },
+  { key: "attempted", label: "Attempted", color: "text-text_primary/60", border: "border-forest/15" },
 ];
 
 export default function Exposure() {
@@ -25,12 +25,12 @@ export default function Exposure() {
       <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-4">
         How much is actually exposed?
       </h1>
-      <p className="text-[15px] leading-relaxed text-forest/70 mb-12 max-w-[560px]">
+      <p className="text-[15px] leading-relaxed text-text_primary/70 mb-12 max-w-[560px]">
         We keep these separate on purpose. A frightening single total helps no one make a decision.
       </p>
 
       {error && <ErrorBanner message={error} onRetry={reload} />}
-      {loading && <p className="text-forest/40 text-[14px] mb-8">Loading exposure&hellip;</p>}
+      {loading && <p className="text-text_primary/40 text-[14px] mb-8">Loading exposure&hellip;</p>}
 
       {!error && exposure && (
         <>
@@ -41,7 +41,7 @@ export default function Exposure() {
                 <div key={cat.key} className={`paper-card border ${cat.border} px-6 py-6`}>
                   <p className="label-eyebrow mb-3">{cat.label}</p>
                   <p className={`hero-money text-[28px] ${cat.color}`}>{formatINR(data.total)}</p>
-                  <p className="text-[12px] text-forest/45 mt-2">
+                  <p className="text-[12px] text-text_primary/45 mt-2">
                     {data.financial_event_ids.length} payout(s)
                     {data.financial_event_ids.slice(0, 3).map((id: string) => (
                       <SourceRef key={id} id={id} />
@@ -54,8 +54,8 @@ export default function Exposure() {
 
           <div className="paper-card px-6 py-6 max-w-[560px] mb-12">
             <p className="label-eyebrow mb-3">Related &middot; Blast Radius</p>
-            <p className="hero-money text-[28px] text-forest/70 mb-2">{formatINR(exposure.related.total)}</p>
-            <p className="text-[13px] text-forest/55">
+            <p className="hero-money text-[28px] text-text_primary/70 mb-2">{formatINR(exposure.related.total)}</p>
+            <p className="text-[13px] text-text_primary/55">
               Reachable within {exposure.blast_radius.traversal_depth} hops through shared beneficiaries
               and fund accounts &mdash; {exposure.related.affected_entities} entities,{" "}
               {exposure.related.affected_fund_accounts} fund accounts touched.
@@ -72,3 +72,4 @@ export default function Exposure() {
     </div>
   );
 }
+

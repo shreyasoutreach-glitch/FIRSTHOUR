@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "../lib/api";
@@ -53,7 +53,7 @@ export default function HumanWitness() {
       <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-4">
         One thing only you can tell us.
       </h1>
-      <p className="text-[15px] leading-relaxed text-forest/70 mb-14 max-w-[520px]">
+      <p className="text-[15px] leading-relaxed text-text_primary/70 mb-14 max-w-[520px]">
         We ask one question at a time, starting with the one that changes the case the most.
       </p>
 
@@ -66,10 +66,10 @@ export default function HumanWitness() {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               className="paper-card px-8 py-10 text-center"
             >
-              <p className="text-[15px] font-ui text-forest/80">{confirmation}</p>
+              <p className="text-[15px] font-ui text-text_primary/80">{confirmation}</p>
             </motion.div>
           ) : loading ? (
-            <p className="text-forest/40 text-[14px]">Finding the next question&hellip;</p>
+            <p className="text-text_primary/40 text-[14px]">Finding the next question&hellip;</p>
           ) : question ? (
             <motion.div
               key={question.question_id}
@@ -93,7 +93,7 @@ export default function HumanWitness() {
             </motion.div>
           ) : (
             <div className="paper-card px-8 py-10">
-              <p className="text-[15px] font-ui text-forest/70 mb-6">
+              <p className="text-[15px] font-ui text-text_primary/70 mb-6">
                 That&rsquo;s everything we needed from you directly. The rest is in your records and
                 the evidence you shared.
               </p>
@@ -109,3 +109,4 @@ export default function HumanWitness() {
     </div>
   );
 }
+

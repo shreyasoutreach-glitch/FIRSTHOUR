@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MessageSquare, ArrowDownRight } from "lucide-react";
@@ -28,7 +28,7 @@ export default function TheIncident() {
   }
 
   if (loading || !data) {
-    return <div className="max-w-canvas mx-auto px-6 sm:px-10 py-16 text-forest/50">Loading case file&hellip;</div>;
+    return <div className="max-w-canvas mx-auto px-6 sm:px-10 py-16 text-text_primary/50">Loading case file&hellip;</div>;
   }
 
   const { incident, timeline } = data;
@@ -41,19 +41,19 @@ export default function TheIncident() {
       <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-8">Here&rsquo;s what happened.</h1>
 
       <div className="mb-4">
-        <p className="hero-money text-[52px] sm:text-[68px] leading-none text-forest">
+        <p className="hero-money text-[52px] sm:text-[68px] leading-none text-text_primary">
           {formatINR(h.total_exposed)}
         </p>
         <p className="label-eyebrow text-vermillion mt-2">Exposed</p>
       </div>
-      <p className="text-[15px] font-ui text-forest/60 mb-14">
+      <p className="text-[15px] font-ui text-text_primary/60 mb-14">
         {payoutCount} payouts &middot; {h.beneficiary_count} beneficiaries &middot; {formatDuration(h.window_seconds)}
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-12">
         {/* Vertical incident spine */}
         <div className="relative pl-8">
-          <div className="absolute left-[9px] top-2 bottom-2 w-px bg-gold/40" aria-hidden />
+          <div className="absolute left-[9px] top-2 bottom-2 w-px bg-surface_border/40" aria-hidden />
           <ol className="space-y-8">
             {timeline.map((event, i) => (
               <motion.li
@@ -64,7 +64,7 @@ export default function TheIncident() {
                 className="relative"
               >
                 <span
-                  className={`absolute -left-8 top-1 w-[19px] h-[19px] rounded-full border-2 flex items-center justify-center bg-ivory ${
+                  className={`absolute -left-8 top-1 w-[19px] h-[19px] rounded-full border-2 flex items-center justify-center bg-graphite ${
                     event.type === "communication" ? "border-amber" : "border-vermillion"
                   }`}
                 >
@@ -74,25 +74,25 @@ export default function TheIncident() {
                     <ArrowDownRight size={10} className="text-vermillion" />
                   )}
                 </span>
-                <p className="text-[12px] font-ui text-forest/45 mb-1">{formatTime(event.timestamp)}</p>
+                <p className="text-[12px] font-ui text-text_primary/45 mb-1">{formatTime(event.timestamp)}</p>
                 {event.type === "communication" ? (
                   <div>
                     <p className="label-eyebrow text-amber mb-1">Communication Event</p>
-                    <p className="text-[14px] leading-snug max-w-[480px] text-forest/80">
-                      &ldquo;{event.detail.length > 140 ? event.detail.slice(0, 140) + "…" : event.detail}&rdquo;
+                    <p className="text-[14px] leading-snug max-w-[480px] text-text_primary/80">
+                      &ldquo;{event.detail.length > 140 ? event.detail.slice(0, 140) + "â€¦" : event.detail}&rdquo;
                       <SourceRef id={event.source_artifact_id} label="evidence" />
                     </p>
                   </div>
                 ) : (
                   <div>
-                    <p className={`label-eyebrow mb-1 ${event.label === "NEW BENEFICIARY" ? "text-vermillion" : "text-forest/50"}`}>
+                    <p className={`label-eyebrow mb-1 ${event.label === "NEW BENEFICIARY" ? "text-vermillion" : "text-text_primary/50"}`}>
                       {event.label}
                     </p>
                     <p className="font-display text-[22px]">
                       {formatINR(event.amount)}
                       <SourceRef id={event.source_reference} label="payout" />
                     </p>
-                    <p className="text-[13px] text-forest/55">{event.beneficiary}</p>
+                    <p className="text-[13px] text-text_primary/55">{event.beneficiary}</p>
                   </div>
                 )}
               </motion.li>
@@ -106,24 +106,24 @@ export default function TheIncident() {
           <ul className="space-y-4">
             <li>
               <p className="font-display text-[22px] text-vermillion">{h.multiple_of_median.toFixed(0)}&times;</p>
-              <p className="text-[13px] text-forest/60">normal payout amount</p>
+              <p className="text-[13px] text-text_primary/60">normal payout amount</p>
             </li>
             <li>
               <p className="font-display text-[22px] text-vermillion">{h.new_beneficiary_count}</p>
-              <p className="text-[13px] text-forest/60">new beneficiaries, never paid before</p>
+              <p className="text-[13px] text-text_primary/60">new beneficiaries, never paid before</p>
             </li>
             <li>
               <p className="font-display text-[22px] text-vermillion">0</p>
-              <p className="text-[13px] text-forest/60">prior transactions with these beneficiaries</p>
+              <p className="text-[13px] text-text_primary/60">prior transactions with these beneficiaries</p>
             </li>
             <li>
               <p className="font-display text-[22px] text-vermillion">{formatDuration(h.window_seconds)}</p>
-              <p className="text-[13px] text-forest/60">velocity cluster &mdash; all three payouts back to back</p>
+              <p className="text-[13px] text-text_primary/60">velocity cluster &mdash; all three payouts back to back</p>
             </li>
           </ul>
-          <div className="h-px bg-gold/25 my-5" />
-          <p className="text-[12px] text-forest/45 leading-relaxed">
-            Incident Evidence Score: <strong className="text-forest">{incident.incident_evidence_score}</strong>/100
+          <div className="h-px bg-surface_border/25 my-5" />
+          <p className="text-[12px] text-text_primary/45 leading-relaxed">
+            Incident Evidence Score: <strong className="text-text_primary">{incident.incident_evidence_score}</strong>/100
             &mdash; a weighted, computed measure of how unusual this looks against Arrow Industries&rsquo; own
             history. Not a probability of fraud.
           </p>
@@ -140,3 +140,4 @@ export default function TheIncident() {
     </div>
   );
 }
+

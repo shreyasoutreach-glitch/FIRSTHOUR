@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+﻿import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FileText, Upload } from "lucide-react";
 import { api } from "../lib/api";
@@ -65,7 +65,7 @@ export default function EvidenceDrop() {
       <div className="max-w-[640px] mb-10">
         <p className="label-eyebrow mb-4">Step 2 of 3 &middot; Evidence</p>
         <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-4">Bring what you have.</h1>
-        <p className="text-[15px] leading-relaxed text-forest/70 max-w-[500px]">
+        <p className="text-[15px] leading-relaxed text-text_primary/70 max-w-[500px]">
           Screenshots, PDFs, bank statements, SMS or email exports &mdash; whatever you have is
           enough to start. We already pulled in what came through your Finance Ops thread.
         </p>
@@ -73,7 +73,7 @@ export default function EvidenceDrop() {
 
       {loadError && <ErrorBanner message={loadError} onRetry={loadExisting} />}
       {loaded && !loadError && tiles.length === 0 && (
-        <p className="text-[13px] text-forest/45 mb-6">
+        <p className="text-[13px] text-text_primary/45 mb-6">
           No evidence ingested yet for this case &mdash; drop a file below to get started.
         </p>
       )}
@@ -84,11 +84,11 @@ export default function EvidenceDrop() {
         onDrop={(e) => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files); }}
         className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-[4px]
                     px-8 py-14 mb-8 max-w-[720px] cursor-pointer transition-colors duration-250 ${
-          dragOver ? "border-gold bg-gold/5" : "border-forest/20 hover:border-forest/35"
+          dragOver ? "border-gold bg-surface_border/5" : "border-forest/20 hover:border-forest/35"
         }`}
       >
-        <Upload size={22} className="text-forest/40" />
-        <p className="text-[14px] font-ui text-forest/60">Drop files here, or click to browse</p>
+        <Upload size={22} className="text-text_primary/40" />
+        <p className="text-[14px] font-ui text-text_primary/60">Drop files here, or click to browse</p>
         <input
           type="file"
           multiple
@@ -101,11 +101,11 @@ export default function EvidenceDrop() {
         <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 max-w-[900px] mb-10">
           {tiles.map((tile) => (
             <li key={tile.id} className="paper-card px-4 py-4 flex items-start gap-3">
-              <FileText size={18} className="text-gold mt-0.5 shrink-0" />
+              <FileText size={18} className="text-text_secondary mt-0.5 shrink-0" />
               <div className="min-w-0">
                 <p className="text-[13px] font-ui truncate">{tile.filename}</p>
-                {tile.sourceLabel && <p className="text-[11px] text-forest/40 uppercase tracking-wide">{tile.sourceLabel}</p>}
-                <p className={`text-[12px] mt-1 ${tile.status === "Processed" ? "text-emerald" : "text-forest/50"}`}>
+                {tile.sourceLabel && <p className="text-[11px] text-text_primary/40 uppercase tracking-wide">{tile.sourceLabel}</p>}
+                <p className={`text-[12px] mt-1 ${tile.status === "Processed" ? "text-emerald" : "text-text_primary/50"}`}>
                   {tile.status}
                 </p>
               </div>
@@ -122,3 +122,4 @@ export default function EvidenceDrop() {
     </div>
   );
 }
+

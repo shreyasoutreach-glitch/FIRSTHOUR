@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api, CHAOS_MERCHANT_ID } from "../lib/api";
 import { formatINR } from "../lib/format";
@@ -85,10 +85,10 @@ export default function ChaosLab() {
           </h1>
         </div>
         <button className="btn-secondary" onClick={reset} disabled={resetting}>
-          {resetting ? "Resetting…" : "Reset dataset"}
+          {resetting ? "Resettingâ€¦" : "Reset dataset"}
         </button>
       </div>
-      <p className="text-[15px] leading-relaxed text-forest/70 mb-10 max-w-[600px]">
+      <p className="text-[15px] leading-relaxed text-text_primary/70 mb-10 max-w-[600px]">
         This mutates the live backend dataset for Harbor &amp; Co, a clean merchant kept dormant
         for exactly this. Nothing here is pre-recorded.
       </p>
@@ -100,20 +100,20 @@ export default function ChaosLab() {
         ) : baseline ? (
           <div className="grid grid-cols-3 gap-4 text-[13px]">
             <div>
-              <p className="text-forest/45 text-[11px] uppercase">Median payout</p>
+              <p className="text-text_primary/45 text-[11px] uppercase">Median payout</p>
               <p className="font-display text-[18px]">{formatINR(baseline.median_payout)}</p>
             </div>
             <div>
-              <p className="text-forest/45 text-[11px] uppercase">Beneficiaries</p>
+              <p className="text-text_primary/45 text-[11px] uppercase">Beneficiaries</p>
               <p className="font-display text-[18px]">{baseline.beneficiary_count}</p>
             </div>
             <div>
-              <p className="text-forest/45 text-[11px] uppercase">Largest historical</p>
+              <p className="text-text_primary/45 text-[11px] uppercase">Largest historical</p>
               <p className="font-display text-[18px]">{formatINR(baseline.largest_historical_payout)}</p>
             </div>
           </div>
         ) : (
-          <p className="text-[13px] text-forest/45">Loading baseline&hellip;</p>
+          <p className="text-[13px] text-text_primary/45">Loading baseline&hellip;</p>
         )}
       </div>
 
@@ -128,7 +128,7 @@ export default function ChaosLab() {
             }`}
           >
             <p className="font-display text-[18px] mb-1.5">{s.label}</p>
-            <p className="text-[13px] text-forest/55 leading-snug">{s.description}</p>
+            <p className="text-[13px] text-text_primary/55 leading-snug">{s.description}</p>
             <p className="label-eyebrow text-vermillion mt-3">Inject incident</p>
           </button>
         ))}
@@ -137,7 +137,7 @@ export default function ChaosLab() {
       <AnimatePresence>
         {status === "injecting" && (
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="text-[14px] text-forest/50 mb-8">
+                    className="text-[14px] text-text_primary/50 mb-8">
             Writing to the database and running the detector&hellip;
           </motion.p>
         )}
@@ -157,21 +157,21 @@ export default function ChaosLab() {
                   key={step}
                   initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: i * 0.1 }}
-                  className="text-[13px] font-ui text-forest/75 flex items-center gap-2"
+                  className="text-[13px] font-ui text-text_primary/75 flex items-center gap-2"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-vermillion" />
                   {CHAIN_STEPS[step] || step}
                 </motion.li>
               ))}
             </ol>
-            <div className="h-px bg-gold/25 mb-5" />
+            <div className="h-px bg-surface_border/25 mb-5" />
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-forest/45 text-[11px] uppercase mb-1">Incident Evidence Score</p>
+                <p className="text-text_primary/45 text-[11px] uppercase mb-1">Incident Evidence Score</p>
                 <p className="font-display text-[26px] text-vermillion">{result.incident_evidence_score}/100</p>
               </div>
               <div className="text-right">
-                <p className="text-forest/45 text-[11px] uppercase mb-1">Payouts injected</p>
+                <p className="text-text_primary/45 text-[11px] uppercase mb-1">Payouts injected</p>
                 <p className="font-display text-[18px]">{result.payout_ids.length}</p>
               </div>
             </div>
@@ -181,3 +181,4 @@ export default function ChaosLab() {
     </div>
   );
 }
+

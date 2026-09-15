@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Check, Key, ShieldAlert } from "lucide-react";
 import { api } from "../lib/api";
@@ -51,7 +51,7 @@ export default function Connect() {
         <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-4">
           {isProduction ? "Connect your live gateway." : "Connect your financial record."}
         </h1>
-        <p className="text-[15px] leading-relaxed text-forest/70 mb-10 max-w-[500px]">
+        <p className="text-[15px] leading-relaxed text-text_primary/70 mb-10 max-w-[500px]">
           {isProduction 
             ? "Enter your read-only gateway key. FIRST HOUR will securely sync your live ledger without using mock data."
             : "FIRST HOUR reads your financial activity to reconstruct an incident. It does not initiate payouts, refunds, transfers or freezes."}
@@ -63,17 +63,17 @@ export default function Connect() {
       {isProduction ? (
         <div className="paper-card max-w-[520px] px-8 py-8 mb-10 border-gold/30 shadow-lg">
           <div className="flex items-center gap-3 mb-6">
-            <ShieldAlert className="w-6 h-6 text-gold" />
+            <ShieldAlert className="w-6 h-6 text-text_secondary" />
             <p className="font-display text-[20px]">Live Production Mode</p>
           </div>
-          <div className="h-px bg-gold/30 mb-6" />
+          <div className="h-px bg-surface_border/30 mb-6" />
           <form onSubmit={handleLiveConnect} className="space-y-4">
             <div>
-              <label className="block text-[13px] font-ui text-forest/70 mb-2">
+              <label className="block text-[13px] font-ui text-text_primary/70 mb-2">
                 Gateway Read-Only API Key (Stripe / Razorpay)
               </label>
               <div className="relative">
-                <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-forest/40" />
+                <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text_primary/40" />
                 <input 
                   type="password" 
                   value={apiKey}
@@ -91,7 +91,7 @@ export default function Connect() {
               {isConnectingLive ? "Syncing Ledger..." : "Connect Gateway"}
             </button>
           </form>
-          <p className="text-[12px] text-forest/45 mt-6 text-center">
+          <p className="text-[12px] text-text_primary/45 mt-6 text-center">
             You are in the production environment. Mock data has been strictly disabled.
           </p>
         </div>
@@ -109,7 +109,7 @@ export default function Connect() {
             </span>
           </div>
 
-          <div className="h-px bg-gold/30 mb-6" />
+          <div className="h-px bg-surface_border/30 mb-6" />
 
           <ul className="space-y-3">
             {SCOPES.map((scope, i) => (
@@ -121,12 +121,12 @@ export default function Connect() {
                 >
                   <Check size={13} strokeWidth={2.5} />
                 </span>
-                <span className={i < revealed ? "text-forest" : "text-forest/30"}>{scope}</span>
+                <span className={i < revealed ? "text-text_primary" : "text-text_primary/30"}>{scope}</span>
               </li>
             ))}
           </ul>
 
-          <p className="text-[12px] text-forest/45 mt-6">
+          <p className="text-[12px] text-text_primary/45 mt-6">
             FIRST HOUR is read-only in this demo. Workspace: Demo / Sandbox &mdash; not a live
             production connection.
           </p>
@@ -148,3 +148,4 @@ export default function Connect() {
     </div>
   );
 }
+

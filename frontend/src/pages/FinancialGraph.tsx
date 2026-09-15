@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+﻿import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../lib/api";
 import { useCase } from "../lib/CaseContext";
@@ -55,16 +55,16 @@ export default function FinancialGraph() {
       <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-4">
         How the money and the evidence connect.
       </h1>
-      <p className="text-[15px] leading-relaxed text-forest/70 mb-10 max-w-[560px]">
+      <p className="text-[15px] leading-relaxed text-text_primary/70 mb-10 max-w-[560px]">
         Every line here is a real relationship pulled from your records &mdash; not a suggestion.
         Click any node to see where it came from.
       </p>
 
       {error && <ErrorBanner message={error} onRetry={reload} />}
-      {loading && <p className="text-forest/40 text-[14px] mb-8">Loading the graph&hellip;</p>}
+      {loading && <p className="text-text_primary/40 text-[14px] mb-8">Loading the graph&hellip;</p>}
 
       {!error && !loading && graph && graph.nodes.length === 0 && (
-        <p className="text-forest/45 text-[14px] mb-8">No graph data yet for this case.</p>
+        <p className="text-text_primary/45 text-[14px] mb-8">No graph data yet for this case.</p>
       )}
 
       {!error && !loading && graph && graph.nodes.length > 0 && (
@@ -102,7 +102,7 @@ export default function FinancialGraph() {
                     <circle r={isSelected ? 9 : 7} fill={NODE_COLOR[node.type] || "#666"}
                             stroke={isSelected ? "#071510" : "none"} strokeWidth={2} />
                     <text x={0} y={22} textAnchor="middle" fontSize={10.5} fill="#071510" fontFamily="Aptos, sans-serif">
-                      {node.label.length > 16 ? node.label.slice(0, 16) + "…" : node.label}
+                      {node.label.length > 16 ? node.label.slice(0, 16) + "â€¦" : node.label}
                     </text>
                   </g>
                 );
@@ -122,15 +122,15 @@ export default function FinancialGraph() {
               <dl className="space-y-2 text-[13px]">
                 {Object.entries(selected.data || {}).map(([k, v]) => (
                   <div key={k} className="flex justify-between gap-4">
-                    <dt className="text-forest/45">{k}</dt>
-                    <dd className="text-forest text-right break-all">{String(v)}</dd>
+                    <dt className="text-text_primary/45">{k}</dt>
+                    <dd className="text-text_primary text-right break-all">{String(v)}</dd>
                   </div>
                 ))}
               </dl>
-              <p className="text-[11px] text-forest/40 mt-4">ID: {selected.id}</p>
+              <p className="text-[11px] text-text_primary/40 mt-4">ID: {selected.id}</p>
             </div>
           ) : (
-            <p className="text-[13px] text-forest/45">Select a node to inspect its source record.</p>
+            <p className="text-[13px] text-text_primary/45">Select a node to inspect its source record.</p>
           )}
         </aside>
       </div>
@@ -146,3 +146,4 @@ export default function FinancialGraph() {
     </div>
   );
 }
+

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ShieldAlert, Server, Play, ChevronRight } from "lucide-react";
@@ -9,7 +9,7 @@ export default function Welcome() {
   return (
     <div className="min-h-[calc(100vh-56px)] flex flex-col items-center justify-center px-6 relative overflow-hidden bg-charcoal text-parchment">
       {/* Royal Ambient Glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gold/10 rounded-full blur-[120px] -z-10 pointer-events-none" />
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-surface_border/10 rounded-full blur-[120px] -z-10 pointer-events-none" />
       <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-champagne/10 rounded-full blur-[100px] -z-10 pointer-events-none" />
 
       <motion.div 
@@ -25,7 +25,7 @@ export default function Welcome() {
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
             className="absolute inset-0 rounded-3xl border border-gold/40 border-dashed"
           />
-          <ShieldAlert className="w-10 h-10 text-gold" strokeWidth={1} />
+          <ShieldAlert className="w-10 h-10 text-text_secondary" strokeWidth={1} />
         </div>
 
         <h1 className="font-display text-[44px] sm:text-[56px] leading-[1.05] mb-6 font-semibold tracking-tight bg-gradient-to-br from-parchment to-parchment/60 bg-clip-text text-transparent">
@@ -60,17 +60,18 @@ export default function Welcome() {
           >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-full bg-parchment/10 flex items-center justify-center">
-                <Server className="w-4 h-4 text-gold" />
+                <Server className="w-4 h-4 text-text_secondary" />
               </div>
               <div className="text-left">
                 <div className="text-[15px]">Live Production</div>
                 <div className="text-[12px] text-parchment/50">Connect real gateways</div>
               </div>
             </div>
-            <ChevronRight className="w-5 h-5 text-gold opacity-40 group-hover:opacity-100 transition-opacity" />
+            <ChevronRight className="w-5 h-5 text-text_secondary opacity-40 group-hover:opacity-100 transition-opacity" />
           </button>
         </div>
       </motion.div>
     </div>
   );
 }
+

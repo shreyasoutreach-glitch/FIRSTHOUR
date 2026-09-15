@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+﻿import React, { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, DEMO_TOKENS } from "../lib/api";
 import { useCase } from "../lib/CaseContext";
@@ -113,13 +113,13 @@ export default function RecoveryCommand() {
       <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-4">
         What can still be recovered?
       </h1>
-      <p className="text-[15px] leading-relaxed text-forest/70 mb-10 max-w-[600px]">
+      <p className="text-[15px] leading-relaxed text-text_primary/70 mb-10 max-w-[600px]">
         Every action below is proposed, reviewed and approved separately &mdash; and even once
         executed, it is <strong>simulated</strong>. Nothing here moves real money.
       </p>
 
       {error && <ErrorBanner message={error} onRetry={reload} />}
-      {loading && <p className="text-forest/40 text-[14px] mb-8">Loading case data&hellip;</p>}
+      {loading && <p className="text-text_primary/40 text-[14px] mb-8">Loading case data&hellip;</p>}
 
       {!error && !loading && data && target && why && (
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-10">
@@ -128,7 +128,7 @@ export default function RecoveryCommand() {
               <p className="hero-money text-[42px] leading-none mb-1">
                 {formatINR(data.incident.headline.total_exposed)}
               </p>
-              <p className="text-[14px] text-forest/55 mb-6">{data.incident.merchant_name}</p>
+              <p className="text-[14px] text-text_primary/55 mb-6">{data.incident.merchant_name}</p>
 
               <div className="grid grid-cols-2 gap-6 mb-6">
                 <div>
@@ -141,10 +141,10 @@ export default function RecoveryCommand() {
                 </div>
               </div>
 
-              <div className="h-px bg-gold/25 mb-6" />
+              <div className="h-px bg-surface_border/25 mb-6" />
 
               <p className="label-eyebrow mb-3">Why</p>
-              <ul className="grid grid-cols-2 gap-y-2 text-[13px] text-forest/75">
+              <ul className="grid grid-cols-2 gap-y-2 text-[13px] text-text_primary/75">
                 <li>{why.anomalousPayouts} anomalous payout(s)</li>
                 <li>{why.sharedBeneficiary ? "Shared beneficiary" : "Distinct beneficiaries"}</li>
                 <li>Historical novelty: {why.sigma.toFixed(1)}&sigma;</li>
@@ -159,14 +159,14 @@ export default function RecoveryCommand() {
                   <React.Fragment key={step}>
                     <li className="flex items-center gap-2">
                       <span className={`w-2.5 h-2.5 rounded-full ${
-                        command?.state === "REJECTED" ? "bg-forest/20"
-                        : i <= stepIndex ? "bg-vermillion" : "bg-forest/15"
+                        command?.state === "REJECTED" ? "bg-text_primary/20"
+                        : i <= stepIndex ? "bg-vermillion" : "bg-text_primary/15"
                       }`} />
                       <span className={`text-[12px] font-ui ${
-                        i <= stepIndex && command?.state !== "REJECTED" ? "text-forest" : "text-forest/35"
+                        i <= stepIndex && command?.state !== "REJECTED" ? "text-text_primary" : "text-text_primary/35"
                       }`}>{step}</span>
                     </li>
-                    {i < LIFECYCLE.length - 1 && <span className="text-forest/20">&rarr;</span>}
+                    {i < LIFECYCLE.length - 1 && <span className="text-text_primary/20">&rarr;</span>}
                   </React.Fragment>
                 ))}
               </ol>
@@ -176,15 +176,15 @@ export default function RecoveryCommand() {
               )}
 
               <div className="flex items-center gap-3 mb-5">
-                <label className="text-[12px] font-ui text-forest/55">Acting as</label>
+                <label className="text-[12px] font-ui text-text_primary/55">Acting as</label>
                 <select
                   value={actingRole}
                   onChange={(e) => setActingRole(e.target.value)}
-                  className="text-[13px] font-ui border border-forest/25 rounded-[2px] px-2 py-1.5 bg-ivory"
+                  className="text-[13px] font-ui border border-forest/25 rounded-[2px] px-2 py-1.5 bg-graphite"
                 >
                   {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{r.replace("_", " ")}</option>)}
                 </select>
-                <span className="text-[11px] text-forest/40">
+                <span className="text-[11px] text-text_primary/40">
                   Try a role without permission &mdash; the backend will genuinely reject it.
                 </span>
               </div>
@@ -221,7 +221,7 @@ export default function RecoveryCommand() {
               {command?.dry_run_result?.after && (
                 <div className="mt-6 pt-6 border-t border-gold/20 text-[13px]">
                   <p className="label-eyebrow mb-2">Dry run result</p>
-                  <p className="text-forest/70">
+                  <p className="text-text_primary/70">
                     Status would change: <strong>{command.dry_run_result.before?.status}</strong> &rarr;{" "}
                     <strong>{command.dry_run_result.after?.status}</strong>
                   </p>
@@ -234,7 +234,7 @@ export default function RecoveryCommand() {
               {command?.state === "EXECUTED" && command?.execution_result && (
                 <div className="mt-6 pt-6 border-t border-gold/20 text-[13px]">
                   <p className="label-eyebrow mb-2">Execution result &middot; {command.execution_mode}</p>
-                  <p className="text-forest/70">{command.execution_result.expected_convergence}</p>
+                  <p className="text-text_primary/70">{command.execution_result.expected_convergence}</p>
                 </div>
               )}
 
@@ -246,7 +246,7 @@ export default function RecoveryCommand() {
 
           <aside className="paper-card px-6 py-6 h-fit">
             <p className="label-eyebrow mb-3">What this does not do</p>
-            <ul className="text-[13px] text-forest/65 space-y-2 leading-relaxed">
+            <ul className="text-[13px] text-text_primary/65 space-y-2 leading-relaxed">
               <li>FIRST HOUR does not contact Arrow Industries&rsquo; bank.</li>
               <li>FIRST HOUR does not freeze or reverse anything with a real payment network.</li>
               <li>Execution here is always recorded as SIMULATED, never EXECUTED-for-real.</li>
@@ -281,11 +281,12 @@ function ConvergencePanel({ commandId }: { commandId: string }) {
           {data.discrepancies.map((d: string, i: number) => <li key={i}>{d}</li>)}
         </ul>
       )}
-      <ul className="text-forest/55 mt-2 space-y-1">
+      <ul className="text-text_primary/55 mt-2 space-y-1">
         {data.checks.map((c: any) => (
-          <li key={c.check}>{c.passed ? "✓" : "✗"} {c.check.replace(/_/g, " ")}</li>
+          <li key={c.check}>{c.passed ? "âœ“" : "âœ—"} {c.check.replace(/_/g, " ")}</li>
         ))}
       </ul>
     </div>
   );
 }
+

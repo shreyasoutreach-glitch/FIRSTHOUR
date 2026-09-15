@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { AlertTriangle } from "lucide-react";
 
 export default function ErrorBanner({ message, onRetry }: { message: string; onRetry?: () => void }) {
@@ -7,9 +7,9 @@ export default function ErrorBanner({ message, onRetry }: { message: string; onR
       <AlertTriangle size={17} className="text-vermillion mt-0.5 shrink-0" />
       <div>
         <p className="text-[13px] text-vermillion mb-1">We couldn&rsquo;t load this from the server.</p>
-        <p className="text-[12px] text-forest/50 break-all">{message}</p>
+        <p className="text-[12px] text-text_primary/50 break-all">{message}</p>
         {onRetry && (
-          <button onClick={onRetry} className="text-[12px] font-ui text-forest underline underline-offset-2 mt-2">
+          <button onClick={onRetry} className="text-[12px] font-ui text-text_primary underline underline-offset-2 mt-2">
             Try again
           </button>
         )}
@@ -17,3 +17,4 @@ export default function ErrorBanner({ message, onRetry }: { message: string; onR
     </div>
   );
 }
+
