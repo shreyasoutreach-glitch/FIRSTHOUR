@@ -619,20 +619,21 @@ def upgrade() -> None:
                 ('financial_events', 'amount'),
                 ('account_trust_states', 'median_amount'),
                 ('account_trust_states', 'mad_amount'),
-                ('merchants', 'financial_exposure'),
-                ('merchants', 'recoverable_amount'),
-                ('merchants', 'unrecoverable_amount'),
-                ('extracted_claims', 'mentioned_amount'),
+                ('incidents', 'financial_exposure'),
+                ('incidents', 'recoverable_amount'),
+                ('incidents', 'unrecoverable_amount'),
+                ('communication_events', 'mentioned_amount'),
                 ('recovery_commands', 'amount'),
                 ('settlements', 'amount'),
                 ('transfers', 'amount'),
                 ('orders', 'amount'),
             ]
             for table, col in columns_to_upgrade:
-                try:
-                    op.execute(f"ALTER TABLE {table} ALTER COLUMN {col} TYPE NUMERIC(24,6) USING {col}::numeric")
-                except Exception as e:
-                    print(f"Skipping {table}.{col} upgrade: {e}")
+                if table in tables:
+                    # Check if column exists to avoid ProgrammingError aborting transaction
+                    existing_cols = [c['name'] for c in inspector.get_columns(table)]
+                    if col in existing_cols:
+                        op.execute(f"ALTER TABLE {table} ALTER COLUMN {col} TYPE NUMERIC(24,6) USING {col}::numeric")
 
 def downgrade() -> None:
     """Downgrade schema."""
