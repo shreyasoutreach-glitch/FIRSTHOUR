@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -6,43 +6,44 @@
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    background-color: #0F0F0F;
   }
   body {
     @apply bg-graphite text-text_primary font-ui;
-    font-size: 15px;
+    font-size: 14px;
     letter-spacing: -0.01em;
   }
   ::selection {
-    background-color: #0A84FF55;
+    background-color: #333333;
   }
 }
 
 @layer components {
   .label-eyebrow {
-    @apply font-label uppercase text-[10.5px] tracking-[0.1em] text-text_secondary font-semibold;
+    @apply font-label uppercase text-[10px] tracking-[0.15em] text-text_secondary font-medium;
   }
   .paper-card {
-    @apply bg-surface/80 backdrop-blur-xl border border-white/[0.08] rounded-3xl shadow-raised;
+    @apply bg-surface border border-surface_border rounded-none shadow-none;
   }
   .hero-money {
     @apply font-display font-light tracking-tight text-text_primary;
     font-variant-numeric: tabular-nums;
   }
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 bg-titanium text-text_primary font-ui font-medium
-           px-6 py-3 rounded-full transition-all duration-250 hover:bg-titanium/80 hover:scale-[0.98]
-           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-titanium
-           disabled:opacity-40 disabled:pointer-events-none;
+    @apply inline-flex items-center justify-center gap-2 bg-text_primary text-graphite font-ui font-medium
+           px-6 py-2 rounded-none transition-colors duration-250 hover:bg-titanium
+           focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-text_primary
+           disabled:opacity-30 disabled:pointer-events-none;
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 bg-surface_raised/80 backdrop-blur-md text-text_primary font-ui font-medium
-           px-6 py-3 rounded-full border border-white/[0.08] transition-all duration-250 hover:bg-white/10 hover:scale-[0.98]
-           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/30;
+    @apply inline-flex items-center justify-center gap-2 bg-transparent text-text_primary font-ui font-medium
+           px-6 py-2 rounded-none border border-surface_border transition-colors duration-250 hover:bg-surface_raised hover:border-titanium
+           focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-surface_border;
   }
   .btn-witness {
-    @apply w-full sm:w-auto min-w-[140px] text-center font-ui font-medium text-base px-8 py-4
-           rounded-2xl border border-white/[0.08] transition-all duration-250 hover:bg-white/10
-           focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/30;
+    @apply w-full sm:w-auto min-w-[140px] text-center font-ui font-medium text-sm px-6 py-3
+           rounded-none border border-surface_border transition-all duration-250 hover:bg-surface_raised hover:border-titanium
+           focus-visible:outline focus-visible:outline-1 focus-visible:outline-offset-2 focus-visible:outline-surface_border;
   }
 }
 
