@@ -9,7 +9,7 @@ from app.audit.logger import log as audit_log
 from app.core.authz import get_tenant_db, require_permission
 from app.models import entities as m
 from app.repositories import incident_repo
-from app.schemas.schemas import AttestationRequest, AttestationResponse, NextQuestionResponse
+from app.schemas.schemas import ExposureResponse, AttestationRequest, AttestationResponse, NextQuestionResponse
 from app.services.exposure.engine import compute_exposure
 from app.services.graph.builder import build_incident_graph
 from app.services.human.questions import candidate_questions_for_incident, next_question
@@ -138,7 +138,7 @@ def get_graph(incident_id: str, db: Session = Depends(get_tenant_db)):
     return build_incident_graph(db, incident_id)
 
 
-@router.get("/incident/{incident_id}/exposure")
+@router.get("/incident/{incident_id}/exposure", response_model=ExposureResponse)
 def get_exposure(incident_id: str, db: Session = Depends(get_tenant_db)):
     if incident_repo.get_incident(db, incident_id) is None:
         raise HTTPException(404, "incident not found")

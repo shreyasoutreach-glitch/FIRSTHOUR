@@ -23,7 +23,13 @@ async def lifespan(app: FastAPI):
     yield
 
 
+
+from fastapi.encoders import ENCODERS_BY_TYPE
+from decimal import Decimal
+ENCODERS_BY_TYPE[Decimal] = str
+
 app = FastAPI(
+
     lifespan=lifespan,
     title="FIRST HOUR",
     description="Financial incident reconstruction -- AI interprets, deterministic systems establish "

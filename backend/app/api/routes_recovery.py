@@ -30,11 +30,16 @@ def _serialize(rc: m.RecoveryCommand) -> RecoveryCommandResponse:
     )
 
 
-def _get_command_or_404(db: Session, command_id: str) -> m.RecoveryCommand:
-    rc = db.get(m.RecoveryCommand, command_id)
+
+def _get_command_or_404(db: Session, command_id: str, for_update: bool = False) -> m.RecoveryCommand:
+    q = db.query(m.RecoveryCommand).filter(m.RecoveryCommand.id == command_id)
+    if for_update:
+        q = q.with_for_update()
+    rc = q.first()
     if rc is None:
         raise HTTPException(404, "recovery command not found")
     return rc
+
 
 
 @router.post("/incident/{incident_id}/recovery-commands", response_model=RecoveryCommandResponse)
@@ -75,14 +80,14 @@ def get_recovery_command(command_id: str, db: Session = Depends(get_tenant_db)):
 @router.post("/recovery-commands/{command_id}/dry-run")
 def dry_run(command_id: str, db: Session = Depends(get_tenant_db),
             user: m.User = Depends(require_permission("RECOMMEND"))):
-    rc = _get_command_or_404(db, command_id)
+    rc = _get_command_or_404(db, command_id, for_update=True)
     return recovery_command.dry_run_command(db, rc, user.id)
 
 
 @router.post("/recovery-commands/{command_id}/review", response_model=RecoveryCommandResponse)
 def review(command_id: str, db: Session = Depends(get_tenant_db),
            user: m.User = Depends(require_permission("INVESTIGATE"))):
-    rc = _get_command_or_404(db, command_id)
+    rc = _get_command_or_404(db, command_id, for_update=True)
     try:
         rc = recovery_command.review_command(db, rc, user.id)
     except recovery_command.InvalidRecoveryTransition as e:
@@ -93,7 +98,7 @@ def review(command_id: str, db: Session = Depends(get_tenant_db),
 @router.post("/recovery-commands/{command_id}/approve", response_model=RecoveryCommandResponse)
 def approve(command_id: str, db: Session = Depends(get_tenant_db),
             user: m.User = Depends(require_permission("APPROVE"))):
-    rc = _get_command_or_404(db, command_id)
+    rc = _get_command_or_404(db, command_id, for_update=True)
     try:
         rc = recovery_command.approve_command(db, rc, user.id)
     except recovery_command.InvalidRecoveryTransition as e:
@@ -106,7 +111,7 @@ def approve(command_id: str, db: Session = Depends(get_tenant_db),
 @router.post("/recovery-commands/{command_id}/reject", response_model=RecoveryCommandResponse)
 def reject(command_id: str, body: RejectRecoveryCommandRequest, db: Session = Depends(get_tenant_db),
            user: m.User = Depends(require_permission("APPROVE"))):
-    rc = _get_command_or_404(db, command_id)
+    rc = _get_command_or_404(db, command_id, for_update=True)
     try:
         rc = recovery_command.reject_command(db, rc, user.id, body.reason)
     except recovery_command.InvalidRecoveryTransition as e:
@@ -117,7 +122,7 @@ def reject(command_id: str, body: RejectRecoveryCommandRequest, db: Session = De
 @router.post("/recovery-commands/{command_id}/execute", response_model=RecoveryCommandResponse)
 def execute(command_id: str, db: Session = Depends(get_tenant_db),
             user: m.User = Depends(require_permission("EXECUTE"))):
-    rc = _get_command_or_404(db, command_id)
+    rc = _get_command_or_404(db, command_id, for_update=True)
     try:
         rc = recovery_command.execute_command(db, rc, user.id)
     except recovery_command.InvalidRecoveryTransition as e:
@@ -128,7 +133,7 @@ def execute(command_id: str, db: Session = Depends(get_tenant_db),
 @router.post("/recovery-commands/{command_id}/verify", response_model=RecoveryCommandResponse)
 def verify(command_id: str, db: Session = Depends(get_tenant_db),
            user: m.User = Depends(require_permission("INVESTIGATE"))):
-    rc = _get_command_or_404(db, command_id)
+    rc = _get_command_or_404(db, command_id, for_update=True)
     try:
         rc = recovery_command.verify_command(db, rc, user.id)
     except recovery_command.InvalidRecoveryTransition as e:
@@ -138,5 +143,5 @@ def verify(command_id: str, db: Session = Depends(get_tenant_db),
 
 @router.get("/recovery-commands/{command_id}/convergence", response_model=ConvergenceResponse)
 def get_convergence(command_id: str, db: Session = Depends(get_tenant_db)):
-    rc = _get_command_or_404(db, command_id)
+    rc = _get_command_or_404(db, command_id, for_update=True)
     return check_convergence(db, rc)

@@ -125,3 +125,28 @@ class ConvergenceResponse(BaseModel):
 
 
 
+
+
+class ExposureCategory(BaseModel):
+    total: Decimal
+    financial_event_ids: list[str] = []
+    
+class BlastRadius(BaseModel):
+    connected_event_count: int
+    connected_amount: Decimal
+    affected_entities: int
+    affected_fund_accounts: int
+    pending_exposure: Decimal
+    traversal_depth: int
+
+class RelatedExposure(BaseModel):
+    total: Decimal
+    affected_entities: int
+    affected_fund_accounts: int
+
+class ExposureResponse(BaseModel):
+    confirmed_moved: ExposureCategory
+    pending: ExposureCategory
+    attempted: ExposureCategory
+    related: RelatedExposure
+    blast_radius: BlastRadius

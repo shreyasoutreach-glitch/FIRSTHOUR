@@ -112,7 +112,7 @@ def test_exposure_endpoint(client):
     resp = client["client"].get("/incident/INC_API_TEST/exposure", headers=auth(client["tokens"]["ANALYST"]))
     assert resp.status_code == 200
     body = resp.json()
-    assert body["confirmed_moved"]["total"] == 5_000_000
+    assert float(body["confirmed_moved"]["total"]) == 5_000_000
 
 
 def test_graph_endpoint(client):
