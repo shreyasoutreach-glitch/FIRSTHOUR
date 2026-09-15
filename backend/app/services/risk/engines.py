@@ -48,7 +48,7 @@ class BehavioralEngine:
         
         # Calculate recent velocity
         recent_transfers = [e for e in recent_history if e.event_type == "TRANSFER_COMPLETED" and (event.event_time - e.event_time).days <= 1]
-        cumulative_24h = sum(dict(e.payload).get("amount", 0.0) for e in recent_transfers) + amount
+        cumulative_24h = sum(float(dict(e.payload).get("amount", 0.0)) for e in recent_transfers) + amount
         
         # Velocity check: if 24h volume > median * 10, that's a velocity spike even if individual txns are small
         velocity_risk = 0.0
@@ -62,7 +62,7 @@ class BehavioralEngine:
         z_risk = 0.0
         if state.mad_amount > 0:
             epsilon = 1e-6
-            z = 0.6745 * (amount - state.median_amount) / (state.mad_amount + epsilon)
+            z = 0.6745 * (amount - float(state.median_amount)) / (float(state.mad_amount) + epsilon)
             if z > 10: z_risk = 0.8
             elif z > 5: z_risk = 0.5
             elif z > 3: z_risk = 0.2

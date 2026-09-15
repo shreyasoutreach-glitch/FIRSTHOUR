@@ -2,6 +2,19 @@ import csv
 from datetime import datetime
 from collections import defaultdict
 import json
+from decimal import Decimal
+
+def _get(p, key, default=None):
+    if isinstance(p, dict):
+        return p.get(key, default)
+    return getattr(p, key, default)
+
+def _set(p, key, val):
+    if isinstance(p, dict):
+        p[key] = val
+    else:
+        setattr(p, key, val)
+
 from app.services.risk.events import RiskEvent, AccountTrustState
 from app.services.risk.engines import RiskFusionEngine
 from app.services.risk.ingestion import CustomerDataAdapter, CustomerSchemaMapping
@@ -74,12 +87,12 @@ def run_replay(csv_file):
         hist = history_store[account_id]
         
         # 3. Graph Mocking Point-in-Time
-        b_id = event.payload.get("beneficiary_id")
+        b_id = _get(event.payload, "beneficiary_id")
         if event.event_type == "TRANSFER_COMPLETED" and b_id:
             beneficiary_senders[b_id].add(account_id)
             sender_beneficiaries[account_id].add(b_id)
-            event.payload["graph_fan_in"] = len(beneficiary_senders[b_id])
-            event.payload["graph_fan_out"] = len(sender_beneficiaries[account_id])
+            _set(event.payload, "graph_fan_in", len(beneficiary_senders[b_id]))
+            _set(event.payload, "graph_fan_out", len(sender_beneficiaries[account_id]))
             
         # 4. Evaluate
         res = fusion.evaluate_risk(event, state, hist)
@@ -89,7 +102,7 @@ def run_replay(csv_file):
         is_fraud = (ground_truth == "FRAUD")
         triggered = (action in ["BLOCK_RECOMMENDED", "HOLD_AND_REVIEW"])
         
-        amt = event.payload.get("amount", 0.0)
+        amt = Decimal(str(_get(event.payload, "amount", "0")))
 
         if not is_fraud and triggered and metrics["false_positives"] < 5:
             pass # print(f"DEBUG FP: amt={amt} state_med={state.median_amount} state_mad={state.mad_amount} action={action} score={res.risk_probability:.2f}")
@@ -105,19 +118,19 @@ def run_replay(csv_file):
             metrics["false_positives"] += 1
             metrics["friction_cost"] += 10.0
             metrics["fp_details"].append({
-                "account": account_id, "amount": amt, "median": state.median_amount, 
+                "account": account_id, "amount": float(amt), "median": float(state.median_amount), 
                 "score": res.risk_probability, "action": action
             })
         elif is_fraud and not triggered:
             metrics["false_negatives"] += 1
-            metrics["missed_fraud"] += amt
+            metrics["missed_fraud"] += float(amt)
             metrics["fn_details"].append({
-                "account": account_id, "amount": amt, "median": state.median_amount,
+                "account": account_id, "amount": float(amt), "median": float(state.median_amount),
                 "score": res.risk_probability, "action": action
             })
         elif is_fraud and triggered:
             metrics["true_positives"] += 1
-            metrics["prevented_exposure"] += amt
+            metrics["prevented_exposure"] += float(amt)
         else:
             metrics["true_negatives"] += 1
                 
@@ -127,16 +140,16 @@ def run_replay(csv_file):
         
         # Manually update rolling baseline for this simulation
         if event.event_type == "TRANSFER_COMPLETED" and amt > 0:
-            past_amts = [e.payload.get("amount", 0.0) for e in hist if e.event_type == "TRANSFER_COMPLETED" and e.payload.get("amount", 0.0) > 0]
+            past_amts = [Decimal(str(_get(e.payload, "amount", "0"))) for e in hist if e.event_type == "TRANSFER_COMPLETED" and Decimal(str(_get(e.payload, "amount", "0"))) > 0]
             if past_amts:
                 past_amts.sort()
                 mid = len(past_amts) // 2
-                med = (past_amts[mid] + past_amts[~mid]) / 2.0
+                med = (Decimal(str(past_amts[mid])) + Decimal(str(past_amts[~mid]))) / Decimal("2.0")
                 state.median_amount = med
                 
                 mads = sorted([abs(x - med) for x in past_amts])
-                mad = (mads[len(mads)//2] + mads[~len(mads)//2]) / 2.0
-                state.mad_amount = mad if mad > 0 else (med * 0.1 + 1.0)
+                mad = (mads[len(mads)//2] + mads[~len(mads)//2]) / Decimal("2.0")
+                state.mad_amount = mad if mad > 0 else (med * Decimal("0.1") + Decimal("1.0"))
         
     print(f"Events Analyzed: {metrics['total_events']}")
     print(f"Accounts Analyzed: {len(metrics['accounts'])}")

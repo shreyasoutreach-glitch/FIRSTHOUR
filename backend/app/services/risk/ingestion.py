@@ -1,5 +1,5 @@
 from typing import Dict, Any, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 from app.services.risk.events import RiskEvent, EventType
 
@@ -29,6 +29,7 @@ class CustomerDataAdapter:
             raw_time = raw_payload[self.schema.get("event_time", "event_time")]
             if isinstance(raw_time, str):
                 event_time = datetime.fromisoformat(raw_time.replace('Z', '+00:00'))
+                if event_time.tzinfo is None: event_time = event_time.replace(tzinfo=timezone.utc)
             else:
                 event_time = raw_time
                 
