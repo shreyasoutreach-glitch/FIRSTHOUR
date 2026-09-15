@@ -1,8 +1,9 @@
-import hashlib
-import json
+﻿import hashlib
+from decimal import Decimal
 from datetime import datetime
-from typing import Any, Dict, Optional, Literal
+from typing import Any, Dict, Optional, Literal, Union
 from pydantic import BaseModel, Field
+from app.core.serialization import canonical_json_bytes
 
 EventType = Literal[
     # IDENTITY
@@ -17,6 +18,8 @@ EventType = Literal[
     # PAYMENT
     "PAYMENT_INITIATED", "PAYMENT_COMPLETED", "PAYMENT_FAILED", "PAYOUT_INITIATED", "PAYOUT_COMPLETED",
     "TRANSFER_INITIATED", "TRANSFER_COMPLETED",
+    # ACCOUNTING EXTENSIONS
+    "REFUND", "REVERSAL", "CHARGEBACK",
     # BENEFICIARY
     "BENEFICIARY_CREATED", "BENEFICIARY_CHANGED", "BENEFICIARY_REMOVED",
     # TELECOM
@@ -24,6 +27,21 @@ EventType = Literal[
     # INCIDENT
     "CUSTOMER_REPORTED", "FRAUD_CONFIRMED", "FRAUD_DISMISSED", "ACCOUNT_LOCKED", "ACCOUNT_UNLOCKED"
 ]
+
+class RiskEventPayload(BaseModel):
+    amount: Optional[Decimal] = None
+    velocity_amount: Optional[Decimal] = None
+    exposure: Optional[Decimal] = None
+    risk_score: Optional[float] = None
+    z_score: Optional[float] = None
+    transaction_id: Optional[str] = None
+    device_id: Optional[str] = None
+    ip: Optional[str] = None
+    beneficiary_id: Optional[str] = None
+    status: Optional[str] = None
+    # For generic unstructured fields
+    class Config:
+        extra = "allow"
 
 class RiskEvent(BaseModel):
     event_id: str
@@ -35,22 +53,21 @@ class RiskEvent(BaseModel):
     source: str
     source_event_id: str
     schema_version: str = "1.0"
-    payload: Dict[str, Any]
+    payload: RiskEventPayload
     payload_hash: str = ""
     previous_event_hash: str = ""
     
     def compute_hash(self) -> str:
-        # Tamper-evident hash chain implementation (Phase 3)
         data = {
             "event_id": self.event_id,
             "tenant_id": self.tenant_id,
             "entity_id": self.entity_id,
             "event_type": self.event_type,
-            "event_time": self.event_time.isoformat(),
+            "event_time": self.event_time,
             "payload": self.payload,
             "previous_event_hash": self.previous_event_hash
         }
-        encoded = json.dumps(data, sort_keys=True).encode('utf-8')
+        encoded = canonical_json_bytes(data)
         return hashlib.sha256(encoded).hexdigest()
 
     def verify_integrity(self) -> bool:
@@ -64,8 +81,8 @@ class AccountTrustState(BaseModel):
     known_beneficiaries: set[str] = Field(default_factory=set)
     first_seen: datetime | None = None
     last_seen: datetime | None = None
-    median_amount: float = 0.0
-    mad_amount: float = 0.0
+    median_amount: Decimal = Decimal(0)
+    mad_amount: Decimal = Decimal(0)
     total_transactions: int = 0
     active_incident_id: Optional[str] = None
     current_risk_score: float = 0.0
@@ -73,28 +90,22 @@ class AccountTrustState(BaseModel):
     last_event_hash: str = ""
     
     def apply_event(self, event: RiskEvent):
-        # Apply event cleanly without contaminating baseline if an incident is active
         if self.first_seen is None:
             self.first_seen = event.event_time
         self.last_seen = event.event_time
         
-        # Link hash chain
         event.previous_event_hash = self.last_event_hash
         event.payload_hash = event.compute_hash()
         self.last_event_hash = event.payload_hash
         
         if self.active_incident_id is not None:
-            # Phase 5: Events associated with an active suspected/confirmed incident 
-            # must NOT automatically contaminate the trusted baseline.
             return
             
-        # Update baseline safely
         if event.event_type in ("LOGIN_SUCCESS", "SESSION_START"):
-            if "device_id" in event.payload:
-                self.known_devices.add(event.payload["device_id"])
-            if "ip" in event.payload:
-                self.known_ips.add(event.payload["ip"])
+            if event.payload.device_id:
+                self.known_devices.add(event.payload.device_id)
+            if event.payload.ip:
+                self.known_ips.add(event.payload.ip)
         elif event.event_type == "BENEFICIARY_CREATED":
-            if "beneficiary_id" in event.payload:
-                self.known_beneficiaries.add(event.payload["beneficiary_id"])
-
+            if event.payload.beneficiary_id:
+                self.known_beneficiaries.add(event.payload.beneficiary_id)

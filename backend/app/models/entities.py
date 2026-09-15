@@ -21,7 +21,9 @@ from __future__ import annotations
 
 import datetime as dt
 
+from decimal import Decimal
 from sqlalchemy import (
+    Numeric,
     Boolean,
     DateTime,
     Float,
@@ -35,6 +37,23 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
+
+from sqlalchemy.types import TypeDecorator, JSON
+from app.core.serialization import to_json_safe
+
+class SafeJSON(TypeDecorator):
+    impl = JSON
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            return to_json_safe(value)
+        return value
+
+    def process_result_value(self, value, dialect):
+        return value
+
+
 
 
 def utcnow() -> dt.datetime:
@@ -99,7 +118,7 @@ class Order(Base, TenantScoped):
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True)
     merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
-    amount: Mapped[float] = mapped_column(Float)
+    amount: Mapped[Decimal] = mapped_column(Numeric(24, 6))
     currency: Mapped[str] = mapped_column(String(8), default="INR")
     status: Mapped[str] = mapped_column(String(24), default="paid")
     created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=utcnow, index=True)
@@ -112,7 +131,7 @@ class Payment(Base, TenantScoped):
     order_id: Mapped[str] = mapped_column(ForeignKey("orders.id"), index=True)
     merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
     customer_id: Mapped[str] = mapped_column(String(32), index=True)
-    amount: Mapped[float] = mapped_column(Float)
+    amount: Mapped[Decimal] = mapped_column(Numeric(24, 6))
     currency: Mapped[str] = mapped_column(String(8), default="INR")
     status: Mapped[str] = mapped_column(String(24), default="captured")
     method: Mapped[str] = mapped_column(String(24), default="upi")
@@ -153,7 +172,7 @@ class Payout(Base, TenantScoped):
     merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
     contact_id: Mapped[str] = mapped_column(ForeignKey("contacts.id"), index=True)
     fund_account_id: Mapped[str] = mapped_column(ForeignKey("fund_accounts.id"), index=True)
-    amount: Mapped[float] = mapped_column(Float)
+    amount: Mapped[Decimal] = mapped_column(Numeric(24, 6))
     currency: Mapped[str] = mapped_column(String(8), default="INR")
     purpose: Mapped[str] = mapped_column(String(40), default="vendor_bill")
     mode: Mapped[str] = mapped_column(String(16), default="IMPS")
@@ -174,7 +193,7 @@ class Transfer(Base, TenantScoped):
     merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
     source_payment_id: Mapped[str] = mapped_column(String(32), default="")
     destination_account_id: Mapped[str] = mapped_column(String(32), default="")
-    amount: Mapped[float] = mapped_column(Float)
+    amount: Mapped[Decimal] = mapped_column(Numeric(24, 6))
     status: Mapped[str] = mapped_column(String(24), default="processed")
     created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=utcnow, index=True)
 
@@ -184,7 +203,7 @@ class Settlement(Base, TenantScoped):
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True)
     merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
-    amount: Mapped[float] = mapped_column(Float)
+    amount: Mapped[Decimal] = mapped_column(Numeric(24, 6))
     status: Mapped[str] = mapped_column(String(24), default="processed")
     settlement_window_start: Mapped[dt.datetime] = mapped_column(DateTime)
     settlement_window_end: Mapped[dt.datetime] = mapped_column(DateTime)
@@ -207,10 +226,10 @@ class FinancialEvent(Base, TenantScoped):
     account_id: Mapped[str] = mapped_column(String(32), default="")
     counterparty_id: Mapped[str] = mapped_column(String(32), default="", index=True)  # contact id
     timestamp: Mapped[dt.datetime] = mapped_column(DateTime, index=True)
-    amount: Mapped[float] = mapped_column(Float, default=0.0)
+    amount: Mapped[Decimal] = mapped_column(Numeric(24, 6), default=0)
     currency: Mapped[str] = mapped_column(String(8), default="INR")
-    attributes: Mapped[dict] = mapped_column(JSON, default=dict)
-    evidence_refs: Mapped[list] = mapped_column(JSON, default=list)
+    attributes: Mapped[dict] = mapped_column(SafeJSON, default=dict)
+    evidence_refs: Mapped[list] = mapped_column(SafeJSON, default=list)
     confidence: Mapped[float] = mapped_column(Float, default=1.0)
     extraction_method: Mapped[str] = mapped_column(String(32), default="system_of_record")
     created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=utcnow)
@@ -224,7 +243,7 @@ class WebhookEvent(Base, TenantScoped):
     source_object_type: Mapped[str] = mapped_column(String(32))
     source_object_id: Mapped[str] = mapped_column(String(32), index=True)
     merchant_id: Mapped[str] = mapped_column(ForeignKey("merchants.id"), index=True)
-    payload: Mapped[dict] = mapped_column(JSON, default=dict)
+    payload: Mapped[dict] = mapped_column(SafeJSON, default=dict)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=utcnow, index=True)
 
 
@@ -256,7 +275,7 @@ class ExtractedClaim(Base, TenantScoped):
     source_location: Mapped[str] = mapped_column(String(120), default="")
     extraction_method: Mapped[str] = mapped_column(String(40), default="rule_based_extractor")
     claim_type: Mapped[str] = mapped_column(String(40))  # instruction/amount/beneficiary/timestamp
-    claim_value: Mapped[dict] = mapped_column(JSON, default=dict)
+    claim_value: Mapped[dict] = mapped_column(SafeJSON, default=dict)
     verification_status: Mapped[str] = mapped_column(String(24), default="UNVERIFIED", index=True)
     matched_financial_event_id: Mapped[str] = mapped_column(String(40), default="")
     created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=utcnow)
@@ -271,7 +290,7 @@ class CommunicationEvent(Base, TenantScoped):
     sender_label: Mapped[str] = mapped_column(String(120))
     channel: Mapped[str] = mapped_column(String(24), default="whatsapp")
     body_text: Mapped[str] = mapped_column(Text)
-    mentioned_amount: Mapped[float] = mapped_column(Float, default=0.0)
+    mentioned_amount: Mapped[Decimal] = mapped_column(Numeric(24, 6), default=0)
     mentioned_beneficiary_text: Mapped[str] = mapped_column(String(160), default="")
     resolved_contact_id: Mapped[str] = mapped_column(String(32), default="")
     timestamp: Mapped[dt.datetime] = mapped_column(DateTime, index=True)
@@ -309,7 +328,7 @@ class Incident(Base, TenantScoped):
     state: Mapped[str] = mapped_column(String(32), default="INGESTING", index=True)
     scenario: Mapped[str] = mapped_column(String(48), default="")
     incident_evidence_score: Mapped[float] = mapped_column(Float, default=0.0)
-    score_components: Mapped[dict] = mapped_column(JSON, default=dict)
+    score_components: Mapped[dict] = mapped_column(SafeJSON, default=dict)
     window_start: Mapped[dt.datetime | None] = mapped_column(DateTime, nullable=True)
     window_end: Mapped[dt.datetime | None] = mapped_column(DateTime, nullable=True)
     dataset_version: Mapped[str] = mapped_column(String(24), default="v1")
@@ -322,9 +341,9 @@ class Incident(Base, TenantScoped):
     # deliberately duplicative of score_components/exposure so a caller can
     # get incident-level headline facts without a second round trip.
     severity: Mapped[str] = mapped_column(String(16), default="MEDIUM")  # LOW/MEDIUM/HIGH/CRITICAL
-    financial_exposure: Mapped[float] = mapped_column(Float, default=0.0)
-    recoverable_amount: Mapped[float] = mapped_column(Float, default=0.0)
-    unrecoverable_amount: Mapped[float] = mapped_column(Float, default=0.0)
+    financial_exposure: Mapped[Decimal] = mapped_column(Numeric(24, 6), default=0)
+    recoverable_amount: Mapped[Decimal] = mapped_column(Numeric(24, 6), default=0)
+    unrecoverable_amount: Mapped[Decimal] = mapped_column(Numeric(24, 6), default=0)
     confidence: Mapped[float] = mapped_column(Float, default=0.0)
     evidence_count: Mapped[int] = mapped_column(Integer, default=0)
     affected_entities: Mapped[int] = mapped_column(Integer, default=0)
@@ -367,10 +386,10 @@ class AuditEvent(Base, TenantScoped):
     actor_user_id: Mapped[str] = mapped_column(String(32), default="")  # set when actor == HUMAN
     event_type: Mapped[str] = mapped_column(String(48), index=True)
     summary: Mapped[str] = mapped_column(String(300), default="")
-    sources: Mapped[list] = mapped_column(JSON, default=list)
-    detail: Mapped[dict] = mapped_column(JSON, default=dict)
-    before_state: Mapped[dict] = mapped_column(JSON, default=dict)
-    after_state: Mapped[dict] = mapped_column(JSON, default=dict)
+    sources: Mapped[list] = mapped_column(SafeJSON, default=list)
+    detail: Mapped[dict] = mapped_column(SafeJSON, default=dict)
+    before_state: Mapped[dict] = mapped_column(SafeJSON, default=dict)
+    after_state: Mapped[dict] = mapped_column(SafeJSON, default=dict)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=utcnow, index=True)
 
 
@@ -414,9 +433,9 @@ class RecoveryCommand(Base, TenantScoped):
     action: Mapped[str] = mapped_column(String(40))  # e.g. FREEZE_PAYOUT / REVERSE_EVENT / LEDGER_CORRECTION
     target_type: Mapped[str] = mapped_column(String(32))  # payout / fund_account / ledger_entry
     target_id: Mapped[str] = mapped_column(String(40))
-    amount: Mapped[float] = mapped_column(Float, default=0.0)
+    amount: Mapped[Decimal] = mapped_column(Numeric(24, 6), default=0)
     reason: Mapped[str] = mapped_column(String(400), default="")
-    supporting_evidence: Mapped[list] = mapped_column(JSON, default=list)  # artifact/claim/event IDs
+    supporting_evidence: Mapped[list] = mapped_column(SafeJSON, default=list)  # artifact/claim/event IDs
     expected_effect: Mapped[str] = mapped_column(String(400), default="")
     risk: Mapped[str] = mapped_column(String(16), default="MEDIUM")  # LOW/MEDIUM/HIGH
     reversible: Mapped[bool] = mapped_column(Boolean, default=True)
@@ -431,8 +450,8 @@ class RecoveryCommand(Base, TenantScoped):
     approved_by: Mapped[str] = mapped_column(String(32), default="")
     executed_at: Mapped[dt.datetime | None] = mapped_column(DateTime, nullable=True)
     execution_mode: Mapped[str] = mapped_column(String(16), default="")  # SIMULATED / EXECUTED
-    dry_run_result: Mapped[dict] = mapped_column(JSON, default=dict)
-    execution_result: Mapped[dict] = mapped_column(JSON, default=dict)
+    dry_run_result: Mapped[dict] = mapped_column(SafeJSON, default=dict)
+    execution_result: Mapped[dict] = mapped_column(SafeJSON, default=dict)
 
     created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=utcnow, index=True)
     updated_at: Mapped[dt.datetime] = mapped_column(DateTime, default=utcnow)

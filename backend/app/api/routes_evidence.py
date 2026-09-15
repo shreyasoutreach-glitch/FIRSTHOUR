@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import os
 import uuid
@@ -37,7 +37,8 @@ async def upload_evidence(
         raise HTTPException(400, f"Unsupported MIME type: {file.content_type}")
 
     digest = sha256_bytes(data)
-    os.makedirs(settings.evidence_storage_dir, exist_ok=True)
+    tenant_dir = os.path.join(settings.evidence_storage_dir, f'tenant_{_user.tenant_id}')
+    os.makedirs(tenant_dir, exist_ok=True)
     artifact_id = f"EVD_{uuid.uuid4().hex[:10]}"
 
     # file.filename is untrusted client input -- safe_filename() strips any
@@ -46,8 +47,8 @@ async def upload_evidence(
     # the resolved destination so a single sanitization bug here can't turn
     # into an arbitrary-file-write.
     display_filename = safe_filename(file.filename)
-    stored_path = os.path.join(settings.evidence_storage_dir, f"{artifact_id}_{display_filename}")
-    if not is_path_contained(settings.evidence_storage_dir, stored_path):
+    stored_path = os.path.join(tenant_dir, f"{artifact_id}_{display_filename}")
+    if not is_path_contained(tenant_dir, stored_path):
         raise HTTPException(400, "Invalid filename.")
 
     with open(stored_path, "wb") as f:
@@ -136,3 +137,4 @@ def analyze_evidence(artifact_id: str = Form(...), db: Session = Depends(get_ten
             "verified": verified_count, "conflicting": conflicting_count, "unverified": unverified_count,
         },
     }
+

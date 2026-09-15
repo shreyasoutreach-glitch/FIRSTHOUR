@@ -91,7 +91,8 @@ def check_convergence(db: Session, command: m.RecoveryCommand) -> dict:
     # --- Check 3: re-simulation matches what was recorded at execution -----
     from app.services.recovery.command import _simulate  # local import: avoid a cycle at module load
 
-    fresh = _simulate(db, command)
+    from app.core.serialization import to_json_safe
+    fresh = to_json_safe(_simulate(db, command))
     recorded = command.execution_result or {}
     resimulation_matches = (
         fresh.get("feasible") == recorded.get("feasible")
@@ -107,7 +108,7 @@ def check_convergence(db: Session, command: m.RecoveryCommand) -> dict:
 
     # --- Check 4: amount agreement ------------------------------------------
     payout = db.get(m.Payout, command.target_id) if command.target_type == "payout" else None
-    amount_agrees = payout is not None and abs(payout.amount - command.amount) < 0.01
+    amount_agrees = payout is not None and payout.amount == command.amount
     checks.append({"check": "amount_agrees_with_target_record", "passed": amount_agrees,
                    "detail": {"command_amount": command.amount,
                               "target_amount": payout.amount if payout else None}})

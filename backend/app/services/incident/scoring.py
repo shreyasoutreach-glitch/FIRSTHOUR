@@ -69,7 +69,7 @@ def normalize_velocity(rolling_count: int, rolling_amount: float,
     count_component = min(1.0, rolling_count / count_saturate)
     amount_component = 0.0
     if median_payout > 0:
-        amount_component = min(1.0, (rolling_amount / median_payout) / (count_saturate * amount_multiple_saturate))
+        amount_component = min(1.0, (float(rolling_amount) / float(median_payout)) / (count_saturate * amount_multiple_saturate))
     return max(count_component, amount_component)
 
 

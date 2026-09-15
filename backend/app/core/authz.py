@@ -1,4 +1,4 @@
-"""
+﻿"""
 Authentication + RBAC.
 
 Deliberately NOT a real identity provider -- there is no password hashing, no
@@ -50,8 +50,11 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
 }
 
 
+from app.core.config import get_settings
+
 def get_current_user(authorization: str = Header(default=""), db: Session = Depends(get_db)) -> User:
-    if not authorization or not authorization.startswith("Bearer "):
+
+    if not authorization or not authorization.startswith('Bearer '):
         raise HTTPException(401, "Missing or malformed Authorization header (expected 'Bearer <token>')")
     token = authorization[len("Bearer "):].strip()
     if not token:
@@ -120,3 +123,4 @@ def get_system_db(
         raise HTTPException(403, "Administrator role required for system operations")
     db.set_tenant(None)
     return db
+

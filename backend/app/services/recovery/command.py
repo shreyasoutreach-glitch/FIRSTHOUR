@@ -1,3 +1,9 @@
+﻿from __future__ import annotations
+from decimal import Decimal
+
+
+
+
 """
 Recovery Command: the structured, auditable action-layer the enterprise
 brief calls "critical" (Section 4). This is deliberately separate from
@@ -28,7 +34,7 @@ would have happened, and the authoritative financial tables are untouched.
 That is not a shortcut to fix later -- see AUDIT.md section J: a fake
 "real" execution path would be actively dishonest, not a missing feature.
 """
-from __future__ import annotations
+
 
 import datetime as dt
 import uuid
@@ -216,7 +222,7 @@ def review_command(db: Session, command: m.RecoveryCommand, user_id: str) -> m.R
     old_state = command.state
     command.state = "REVIEWED"
     command.reviewed_by = user_id
-    command.updated_at = dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
+    command.updated_at = dt.datetime.now(dt.timezone.utc)
     audit_log(
         db, incident_id=command.incident_id, actor="HUMAN", actor_user_id=user_id,
         event_type="RECOVERY_COMMAND_STATE_CHANGED", summary=f"{old_state} -> REVIEWED",
@@ -233,7 +239,7 @@ def approve_command(db: Session, command: m.RecoveryCommand, user_id: str) -> m.
     old_state = command.state
     command.state = "APPROVED"
     command.approved_by = user_id
-    command.updated_at = dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
+    command.updated_at = dt.datetime.now(dt.timezone.utc)
     audit_log(
         db, incident_id=command.incident_id, actor="HUMAN", actor_user_id=user_id,
         event_type="RECOVERY_COMMAND_STATE_CHANGED", summary=f"{old_state} -> APPROVED",
@@ -247,7 +253,7 @@ def reject_command(db: Session, command: m.RecoveryCommand, user_id: str, reason
     _require_transition(command.state, "REJECTED")
     old_state = command.state
     command.state = "REJECTED"
-    command.updated_at = dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
+    command.updated_at = dt.datetime.now(dt.timezone.utc)
     audit_log(
         db, incident_id=command.incident_id, actor="HUMAN", actor_user_id=user_id,
         event_type="RECOVERY_COMMAND_STATE_CHANGED", summary=f"{old_state} -> REJECTED: {reason}",
@@ -272,7 +278,7 @@ def execute_command(db: Session, command: m.RecoveryCommand, user_id: str) -> m.
     command.state = "EXECUTED"
     command.execution_mode = "SIMULATED"
     command.execution_result = result
-    command.executed_at = dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
+    command.executed_at = dt.datetime.now(dt.timezone.utc)
     command.updated_at = command.executed_at
     audit_log(
         db, incident_id=command.incident_id, actor="HUMAN", actor_user_id=user_id,
@@ -294,7 +300,7 @@ def verify_command(db: Session, command: m.RecoveryCommand, user_id: str) -> m.R
     convergence = check_convergence(db, command)
     old_state = command.state
     command.state = "VERIFIED"
-    command.updated_at = dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
+    command.updated_at = dt.datetime.now(dt.timezone.utc)
     audit_log(
         db, incident_id=command.incident_id, actor="SYSTEM", actor_user_id=user_id,
         event_type="RECOVERY_COMMAND_VERIFIED",
@@ -304,3 +310,8 @@ def verify_command(db: Session, command: m.RecoveryCommand, user_id: str) -> m.R
     )
     db.commit()
     return command
+
+
+
+
+

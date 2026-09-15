@@ -137,7 +137,7 @@ def cross_reference_amount_claim(claim_amount: float, candidate_events: list[tup
     for event_id, event_amount in candidate_events:
         if event_amount == 0:
             continue
-        diff = abs(claim_amount - event_amount) / event_amount
+        diff = abs(float(claim_amount) - float(event_amount)) / float(event_amount)
         if diff <= tolerance:
             return "VERIFIED", event_id
     if candidate_events:

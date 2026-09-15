@@ -9,7 +9,12 @@ from app.api import routes_demo, routes_evidence, routes_incident, routes_mercha
 from app.core.config import get_settings
 from app.core.database import Base, engine
 
+
 settings = get_settings()
+
+if not settings.demo_mode:
+    raise RuntimeError("DEMO_MODE is false but no production authentication provider is configured. System halted.")
+
 
 
 @asynccontextmanager

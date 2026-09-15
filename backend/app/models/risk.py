@@ -1,6 +1,7 @@
+﻿from decimal import Decimal
 from datetime import datetime
 from typing import Dict, Any, List
-from sqlalchemy import String, Float, Integer, JSON, Boolean, DateTime, ForeignKey, Text, UniqueConstraint, Index
+from sqlalchemy import String, Float, Integer, JSON, Numeric, Boolean, DateTime, ForeignKey, Text, UniqueConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.compiler import compiles
@@ -55,8 +56,8 @@ class AccountTrustStateModel(Base):
     first_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     last_seen: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
     
-    median_amount: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
-    mad_amount: Mapped[float] = mapped_column(Float, default=0.0, nullable=False)
+    median_amount: Mapped[Decimal] = mapped_column(Numeric(24, 6), default=0, nullable=False)
+    mad_amount: Mapped[Decimal] = mapped_column(Numeric(24, 6), default=0, nullable=False)
     total_transactions: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     
     active_incident_id: Mapped[str] = mapped_column(String, nullable=True)
@@ -117,3 +118,7 @@ class RiskDecisionModel(Base):
     
     # Phase 20: Shadow Mode outcome tracking
     actual_outcome: Mapped[str] = mapped_column(String, nullable=True) # E.g. COMPLETED, REVERSED, FALSE_POSITIVE
+
+
+
+

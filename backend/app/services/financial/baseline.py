@@ -23,7 +23,7 @@ class MerchantBaseline:
     largest_historical_payout: float = 0.0
     beneficiary_count: int = 0
 
-    def robust_z(self, amount: float) -> float:
+    def robust_z(self, amount) -> float:
         """Robust z-score using the median + Median Absolute Deviation, so a
         single historical outlier can't quietly widen the "normal" band the
         way a mean/stddev baseline would.
@@ -37,7 +37,7 @@ class MerchantBaseline:
             mad = 1e-6
         else:
             mad = self.mad_payout
-        return 0.6745 * (amount - self.median_payout) / mad
+        return 0.6745 * (float(amount) - float(self.median_payout)) / float(mad)
 
     def multiple_of_median(self, amount: float) -> float:
         if self.median_payout <= 0:

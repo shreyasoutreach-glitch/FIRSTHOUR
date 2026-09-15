@@ -1,6 +1,18 @@
+﻿from __future__ import annotations
+from decimal import Decimal
+
+def _clean_decimals(obj):
+    if isinstance(obj, Decimal):
+        return str(obj)
+    if isinstance(obj, dict):
+        return {k: _clean_decimals(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_clean_decimals(x) for x in obj]
+    return obj
+
 """Every important operation writes one of these. This is what powers the
 Audit screen's event stream + provenance inspector."""
-from __future__ import annotations
+
 
 import uuid
 
@@ -28,3 +40,5 @@ def log(db: Session, *, incident_id: str, actor: str, event_type: str, summary: 
     db.add(event)
     db.flush()
     return event
+
+

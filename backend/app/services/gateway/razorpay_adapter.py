@@ -56,7 +56,8 @@ class RazorpayTestAdapter(GatewayAdapter):
             results = []
             for p in rzp_payments.get('items', []):
                 # Razorpay amounts are in paise
-                amount = float(p.get('amount', 0)) / 100.0
+                from decimal import Decimal
+                amount = Decimal(p.get('amount', 0)) / Decimal('100')
                 results.append(NormalizedPayment(
                     id=f"FIRST_PAY_{p['id']}",
                     tenant_id=tenant_id,
@@ -80,7 +81,8 @@ class RazorpayTestAdapter(GatewayAdapter):
             rzp_payouts = self.client.payout.all({'count': 10})
             results = []
             for p in rzp_payouts.get('items', []):
-                amount = float(p.get('amount', 0)) / 100.0
+                from decimal import Decimal
+                amount = Decimal(p.get('amount', 0)) / Decimal('100')
                 # In a real app we'd fetch the fund account to get the beneficiary name
                 results.append(NormalizedPayout(
                     id=f"FIRST_POUT_{p['id']}",

@@ -1,5 +1,8 @@
-"""Typed request/response schemas for the API layer."""
+﻿"""Typed request/response schemas for the API layer."""
 from __future__ import annotations
+from decimal import Decimal
+from decimal import Decimal
+from decimal import Decimal
 
 import datetime as dt
 
@@ -75,7 +78,7 @@ class ProposeRecoveryCommandRequest(BaseModel):
     action: str = Field(pattern="^(FREEZE_PAYOUT|REVERSE_PAYOUT)$")
     target_type: str = "payout"
     target_id: str
-    amount: float
+    amount: Decimal
     reason: str
     supporting_evidence: list[str] = Field(default_factory=list)
     idempotency_key: str | None = None
@@ -89,7 +92,7 @@ class RecoveryCommandResponse(BaseModel):
     action: str
     target_type: str
     target_id: str
-    amount: float
+    amount: Decimal
     reason: str
     supporting_evidence: list[str]
     expected_effect: str
@@ -114,3 +117,11 @@ class ConvergenceResponse(BaseModel):
     status: str
     checks: list[dict]
     discrepancies: list[str]
+
+
+
+
+
+
+
+

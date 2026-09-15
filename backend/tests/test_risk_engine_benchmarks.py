@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import uuid
 
 from app.services.risk.events import RiskEvent, AccountTrustState
@@ -11,7 +11,7 @@ def create_event(event_type: str, time_offset_sec: int, payload: dict) -> RiskEv
         tenant_id="tenant_test",
         entity_id="user_123",
         event_type=event_type,
-        event_time=datetime(2026, 9, 13, 10, 42, 11) + timedelta(seconds=time_offset_sec),
+        event_time=datetime(2026, 9, 13, 10, 42, 11, tzinfo=timezone.utc) + timedelta(seconds=time_offset_sec),
         source="system",
         source_event_id=uuid.uuid4().hex[:8],
         payload=payload
@@ -130,5 +130,5 @@ def test_tamper_evident_hash_chain():
     assert e2.verify_integrity() is True
     
     # Tamper with e1 payload
-    e1.payload["device_id"] = "hacker_device"
+    e1.payload.__dict__["device_id"] = "hacker_device"
     assert e1.verify_integrity() is False

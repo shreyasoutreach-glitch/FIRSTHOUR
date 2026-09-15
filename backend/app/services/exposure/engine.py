@@ -21,7 +21,8 @@ def compute_exposure(db: Session, incident_id: str) -> dict:
     fevents = db.query(m.FinancialEvent).filter(m.FinancialEvent.id.in_(fevent_ids)).all()
 
     confirmed_ids, pending_ids, attempted_ids = [], [], []
-    confirmed_total = pending_total = attempted_total = 0.0
+    from decimal import Decimal
+    confirmed_total = pending_total = attempted_total = Decimal(0)
     contact_ids: set[str] = set()
 
     for fe in fevents:

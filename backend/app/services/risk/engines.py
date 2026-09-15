@@ -1,4 +1,4 @@
-from datetime import datetime
+﻿from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 from pydantic import BaseModel
 from .events import RiskEvent, AccountTrustState
@@ -41,11 +41,14 @@ class BehavioralEngine:
         if event.event_type not in ("TRANSFER_COMPLETED", "PAYOUT_COMPLETED", "PAYMENT_COMPLETED"):
             return 0.0
             
-        amount = event.payload.get("amount", 0.0)
+        raw_amount = float(dict(event.payload).get('amount', 0.0))
+        if raw_amount < 0:
+            raise ValueError(f'Negative amounts are semantically invalid for {event.event_type}')
+        amount = raw_amount
         
         # Calculate recent velocity
         recent_transfers = [e for e in recent_history if e.event_type == "TRANSFER_COMPLETED" and (event.event_time - e.event_time).days <= 1]
-        cumulative_24h = sum(e.payload.get("amount", 0.0) for e in recent_transfers) + amount
+        cumulative_24h = sum(dict(e.payload).get("amount", 0.0) for e in recent_transfers) + amount
         
         # Velocity check: if 24h volume > median * 10, that's a velocity spike even if individual txns are small
         velocity_risk = 0.0
@@ -70,14 +73,14 @@ class GraphEngine:
     def evaluate(self, event: RiskEvent, state: AccountTrustState, recent_history: List[RiskEvent]) -> float:
         # Phase 14: Network Intelligence (Fan-In / Fan-Out)
         # Catching the Sprint 3 Low-and-Slow Attack via Graph Mule detection
-        fan_in = event.payload.get("graph_fan_in", 1)
-        fan_out = event.payload.get("graph_fan_out", 1)
-        cross_tenant_velocity = event.payload.get("network_velocity", 0.0)
+        fan_in = dict(event.payload).get("graph_fan_in", 1)
+        fan_out = dict(event.payload).get("graph_fan_out", 1)
+        cross_tenant_velocity = dict(event.payload).get("network_velocity", 0.0)
         
         # Check history for large fan outs
         for e in recent_history:
-            fan_in = max(fan_in, e.payload.get("graph_fan_in", 1))
-            fan_out = max(fan_out, e.payload.get("graph_fan_out", 1))
+            fan_in = max(fan_in, dict(e.payload).get("graph_fan_in", 1))
+            fan_out = max(fan_out, dict(e.payload).get("graph_fan_out", 1))
             
         risk = 0.0
         # If multiple victims are transferring to the same beneficiary (Mule Fan-In)
@@ -126,7 +129,7 @@ class RiskFusionEngine:
         # Phase 22 & 44: Non-linear activation for Stealth Attacks
         # Check if recently strongly authenticated
         is_strongly_authenticated = any(
-            e.event_type == "LOGIN_SUCCESS" and e.payload.get("mfa_verified", False) 
+            e.event_type == "LOGIN_SUCCESS" and dict(e.payload).get("mfa_verified", False) 
             for e in recent_history if (event.event_time - e.event_time).days == 0
         )
         
@@ -170,7 +173,7 @@ class RiskFusionEngine:
         if seq_risk > 0.4: reasons.append("SUSPICIOUS_EVENT_SEQUENCE")
         if not reasons: reasons.append("NORMAL_ACTIVITY")
         
-        from datetime import datetime
+        from datetime import datetime, timezone
         return RiskEvaluation(
             decision_id=f"DEC_{event.event_id}",
             risk_probability=prob,
@@ -178,6 +181,12 @@ class RiskFusionEngine:
             recommended_action=action,
             reason_codes=reasons,
             supporting_event_ids=[e.event_id for e in recent_history[-3:]] + [event.event_id],
-            evaluated_at=datetime.utcnow(),
+            evaluated_at=datetime.now(timezone.utc),
             competing_hypotheses=hypotheses
         )
+
+
+
+
+
+
