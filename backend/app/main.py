@@ -12,14 +12,14 @@ from app.core.database import Base, engine
 
 settings = get_settings()
 
-if not settings.demo_mode:
+if not settings.demo_mode and (not settings.auth_provider_domain or not settings.auth_provider_audience):
     raise RuntimeError("DEMO_MODE is false but no production authentication provider is configured. System halted.")
 
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
+    # Base.metadata.create_all(bind=engine)  # Removed for Alembic migrations
     yield
 
 

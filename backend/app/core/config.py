@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     evidence_storage_dir: str = "./storage/evidence"
     anthropic_api_key: str = ""
     cors_origins: str = "http://localhost:5173"
+    auth_provider_domain: str = ""
+    auth_provider_audience: str = ""
 
     @property
     def cors_origin_list(self) -> list[str]:
