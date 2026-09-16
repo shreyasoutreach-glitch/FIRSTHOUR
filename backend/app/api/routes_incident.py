@@ -37,7 +37,7 @@ def _serialize_incident(incident: m.Incident) -> dict:
 
 @router.get("/incidents")
 def list_incidents(db: Session = Depends(get_tenant_db)):
-    incidents = db.query(m.Incident).order_by(m.Incident.created_at.desc()).all()
+    incidents = db.query(m.Incident).order_by(m.Incident.created_at.desc()).limit(100).all()
     return [_serialize_incident(i) for i in incidents]
 
 
