@@ -30,7 +30,7 @@ from app.core.tenancy import TenantScopedSession
 settings = get_settings()
 
 connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
-engine = create_engine(settings.database_url, connect_args=connect_args, json_serializer=custom_dumps)
+engine = create_engine(settings.database_url.replace("postgres://", "postgresql://"), connect_args=connect_args, json_serializer=custom_dumps)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, class_=TenantScopedSession)
 
 
@@ -49,5 +49,6 @@ def get_db():
         yield db
     finally:
         db.close()
+
 
 
