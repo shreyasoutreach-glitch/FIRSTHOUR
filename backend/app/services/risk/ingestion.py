@@ -43,7 +43,8 @@ class CustomerDataAdapter:
         # Construct canonical payload
         payload = {}
         if "amount" in self.schema and self.schema["amount"] in raw_payload:
-            payload["amount"] = float(raw_payload[self.schema["amount"]])
+            from decimal import Decimal
+            payload["amount"] = str(Decimal(str(raw_payload[self.schema["amount"]])))
         if "beneficiary_id" in self.schema and self.schema["beneficiary_id"] in raw_payload:
             payload["beneficiary_id"] = str(raw_payload[self.schema["beneficiary_id"]])
         if "ip" in self.schema and self.schema["ip"] in raw_payload:
