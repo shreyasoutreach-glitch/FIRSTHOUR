@@ -39,23 +39,48 @@ export const DEMO_TOKENS: Record<string, string> = {
   ADMINISTRATOR: DEMO_TOKEN,
 };
 
+let getAccessToken: (() => Promise<string>) | null = null;
+export function setAccessTokenProvider(provider: () => Promise<string>) {
+  getAccessToken = provider;
+}
+
+export class APIError extends Error {
+  constructor(public status: number, public data: any) {
+    super(`API Error ${status}`);
+    this.name = "APIError";
+  }
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return requestAs<T>(DEMO_TOKEN, path, options);
 }
 
 async function requestAs<T>(token: string, path: string, options?: RequestInit): Promise<T> {
+  const actualToken = getAccessToken ? await getAccessToken() : token;
   const res = await fetch(`${BASE}${path}`, {
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`,
+      "Authorization": `Bearer ${actualToken}`,
       ...(options?.headers || {}),
     },
     ...options,
   });
+
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`${res.status} ${res.statusText}: ${body}`);
+    let data;
+    try {
+      data = await res.json();
+    } catch {
+      data = { detail: res.statusText };
+    }
+    throw new APIError(res.status, data);
   }
+
+  // 204 No Content
+  if (res.status === 204) {
+    return {} as T;
+  }
+
   return res.json();
 }
 
@@ -142,3 +167,4 @@ export const api = {
 export const FLAGSHIP_MERCHANT_ID = "MER_ARROW";
 export const CHAOS_MERCHANT_ID = "MER_HARBOR";
 export const FLAGSHIP_INCIDENT_ID = "INC-001";
+

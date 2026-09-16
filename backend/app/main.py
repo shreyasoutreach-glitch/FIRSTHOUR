@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from contextlib import asynccontextmanager
 
@@ -12,54 +12,37 @@ from app.core.database import Base, engine
 
 settings = get_settings()
 
-# CONTRACTION DETECTED: authz.py does not actually implement JWT validation.
-# if not settings.demo_mode and (not settings.auth_provider_domain or not settings.auth_provider_audience):
-#     raise RuntimeError("DEMO_MODE is false but no production authentication provider is configured. System halted.")
-
-
+if not settings.demo_mode:
+    if not settings.auth_provider_domain or not settings.auth_provider_audience:
+        raise RuntimeError("DEMO_MODE is false but no production authentication provider is configured. System halted.")
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Base.metadata.create_all(bind=engine)  # Removed for Alembic migrations
+def lifespan(app: FastAPI):
     yield
 
-
-
-from fastapi.encoders import ENCODERS_BY_TYPE
-from decimal import Decimal
-ENCODERS_BY_TYPE[Decimal] = str
-
 app = FastAPI(
-
-    lifespan=lifespan,
     title="FIRST HOUR",
-    description="Financial incident reconstruction -- AI interprets, deterministic systems establish "
-                "financial truth, the graph connects facts, humans resolve what machines cannot know.",
-    version="1.0.0",
+    description="Early investigation and exposure mitigation for complex financial incidents.",
+    lifespan=lifespan,
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origin_list,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+if settings.cors_origin_list:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origin_list,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
-app.include_router(routes_incident.router)
-app.include_router(routes_evidence.router)
-app.include_router(routes_demo.router)
-app.include_router(routes_metrics.router)
-app.include_router(routes_merchant.router)
-app.include_router(routes_recovery.router)
-
-
-@app.get("/")
-def root():
-    return {"product": "FIRST HOUR", "status": "read-only demo/sandbox workspace",
-            "demo_mode": settings.demo_mode}
+app.include_router(routes_incident.router, prefix="/api")
+app.include_router(routes_evidence.router, prefix="/api")
+app.include_router(routes_merchant.router, prefix="/api")
+app.include_router(routes_metrics.router, prefix="/api")
+app.include_router(routes_demo.router, prefix="/api")
+app.include_router(routes_recovery.router, prefix="/api")
 
 
 @app.get("/health")
-def health():
-    return {"status": "ok"}
+def health_check():
+    return {"status": "ok", "demo_mode": settings.demo_mode}
