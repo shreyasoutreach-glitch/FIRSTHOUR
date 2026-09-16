@@ -21,3 +21,7 @@ services:
         value: 42
       - key: CORS_ORIGINS
         value: "https://first-hour-app.vercel.app,http://localhost:2090"
+      - key: AUTH_PROVIDER_DOMAIN
+        value: "first-hour.auth0.com"
+      - key: AUTH_PROVIDER_AUDIENCE
+        value: "https://api.firsthour.com"
