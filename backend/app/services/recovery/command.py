@@ -264,27 +264,71 @@ def reject_command(db: Session, command: m.RecoveryCommand, user_id: str, reason
 
 
 def execute_command(db: Session, command: m.RecoveryCommand, user_id: str) -> m.RecoveryCommand:
-    """Simulated execution only -- see module docstring. Idempotent: calling
-    this twice on an already-EXECUTED command returns it unchanged rather
-    than re-running (and re-auditing) the simulation, since
-    RECOVERY_TRANSITIONS has no EXECUTED -> EXECUTED edge and this check
-    happens before we'd otherwise raise on that."""
+    """Execute the command against the configured payment rail when a real
+    provider operation exists.
+
+    FREEZE_PAYOUT maps to RazorpayX's documented queued-payout cancellation
+    endpoint. REVERSE_PAYOUT remains deliberately manual because a processed
+    RazorpayX payout is not reversible through the payout-cancellation API.
+    The system never records a simulated action as a successful live action.
+    """
     if command.state == "EXECUTED":
         return command
     _require_transition(command.state, "EXECUTED")
 
-    result = _simulate(db, command)
+    from app.services.integrations import razorpayx
+
     old_state = command.state
+
+    if command.action == "FREEZE_PAYOUT":
+        result = _simulate(db, command)
+        if not result["feasible"]:
+            raise InvalidRecoveryTransition(
+                "Payout cannot be frozen from its current state. "
+                "Only a queued RazorpayX payout can be cancelled."
+            )
+        live_response = razorpayx.cancel_queued_payout(command.target_id)
+        payout = db.get(m.Payout, command.target_id)
+        if payout is not None:
+            payout.status = "cancelled"
+        result = {
+            **result,
+            "live_provider": "razorpayx",
+            "provider_response": live_response,
+            "live": True,
+        }
+        command.execution_mode = "LIVE"
+        summary = f"{old_state} -> EXECUTED (LIVE RazorpayX cancellation)"
+    else:
+        result = _simulate(db, command)
+        command.execution_mode = "MANUAL"
+        result = {
+            **result,
+            "live": False,
+            "manual_action_required": True,
+            "reason": (
+                "RazorpayX does not expose processed-payout cancellation through "
+                "the queued payout cancel endpoint. The recovery packet must be "
+                "taken to the bank/Razorpay dispute process."
+            ),
+        }
+        summary = f"{old_state} -> EXECUTED (MANUAL)"
+
     command.state = "EXECUTED"
-    command.execution_mode = "SIMULATED"
     command.execution_result = result
     command.executed_at = dt.datetime.now(dt.timezone.utc)
     command.updated_at = command.executed_at
     audit_log(
-        db, incident_id=command.incident_id, actor="HUMAN", actor_user_id=user_id,
-        event_type="RECOVERY_COMMAND_EXECUTED", summary=f"{old_state} -> EXECUTED (SIMULATED)",
-        sources=[command.id], detail={"feasible": result["feasible"]},
-        before_state={"state": old_state}, after_state={"state": "EXECUTED", "execution_mode": "SIMULATED"},
+        db,
+        incident_id=command.incident_id,
+        actor="HUMAN",
+        actor_user_id=user_id,
+        event_type="RECOVERY_COMMAND_EXECUTED",
+        summary=summary,
+        sources=[command.id],
+        detail={"feasible": result["feasible"], "live": result.get("live", False)},
+        before_state={"state": old_state},
+        after_state={"state": "EXECUTED", "execution_mode": command.execution_mode},
     )
     db.commit()
     return command
