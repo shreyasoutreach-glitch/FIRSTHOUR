@@ -5,7 +5,15 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import routes_demo, routes_evidence, routes_incident, routes_merchant, routes_metrics, routes_recovery
+from app.api import (
+    routes_demo,
+    routes_evidence,
+    routes_incident,
+    routes_merchant,
+    routes_metrics,
+    routes_recovery,
+    routes_webhooks,
+)
 from app.core.config import get_settings
 
 
@@ -42,8 +50,20 @@ app.include_router(routes_merchant.router, prefix="/api")
 app.include_router(routes_metrics.router, prefix="/api")
 app.include_router(routes_demo.router, prefix="/api")
 app.include_router(routes_recovery.router, prefix="/api")
+app.include_router(routes_webhooks.router, prefix="/api")
 
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "demo_mode": settings.demo_mode}
+    return {
+        "status": "ok",
+        "demo_mode": settings.demo_mode,
+        "integrations": {
+            "razorpayx": bool(
+                settings.razorpay_key_id
+                and settings.razorpay_key_secret
+                and settings.razorpay_account_number
+            ),
+            "gemini_evidence": bool(settings.gemini_api_key),
+        },
+    }
