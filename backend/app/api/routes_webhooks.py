@@ -105,9 +105,15 @@ async def razorpay_webhook(
     db = SessionLocal()
     try:
         db.set_tenant(None)
+        merchant = db.get(m.Merchant, merchant_id)
+        if merchant is None:
+            raise HTTPException(404, "Configured Razorpay merchant does not exist")
+        tenant_id = merchant.tenant_id
+
         if db.get(m.WebhookEvent, event_id):
             return {"status": "duplicate_ignored", "event_id": event_id}
 
+        db.set_tenant(tenant_id)
         event = m.WebhookEvent(
             id=event_id,
             event_type=payload.get("event", "unknown"),
@@ -116,11 +122,11 @@ async def razorpay_webhook(
                 payload.get("payload", {}).get("payout", {}).get("entity", {}).get("id", "")
             ),
             merchant_id=merchant_id,
+            tenant_id=tenant_id,
             payload=payload,
         )
         db.add(event)
         db.flush()
-        db.set_tenant(event.tenant_id)
 
         payout_entity = payload.get("payload", {}).get("payout", {}).get("entity")
         if payout_entity:
