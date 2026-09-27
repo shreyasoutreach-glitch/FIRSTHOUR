@@ -14,9 +14,16 @@ class Settings(BaseSettings):
     seed: int = 42
     evidence_storage_dir: str = "./storage/evidence"
     anthropic_api_key: str = ""
+    gemini_api_key: str = ""
     cors_origins: str = "http://localhost:5173"
     auth_provider_domain: str = ""
     auth_provider_audience: str = ""
+
+    razorpay_key_id: str = ""
+    razorpay_key_secret: str = ""
+    razorpay_account_number: str = ""
+    razorpay_merchant_id: str = ""
+    razorpay_webhook_secret: str = ""
 
     @property
     def cors_origin_list(self) -> list[str]:
