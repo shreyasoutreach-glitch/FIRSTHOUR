@@ -1,6 +1,6 @@
 ﻿import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Check, Key, ShieldAlert } from "lucide-react";
+import { Check, RefreshCw, ShieldAlert } from "lucide-react";
 import { api } from "../lib/api";
 import { useCase } from "../lib/CaseContext";
 import { useApiData } from "../lib/useApiData";
@@ -16,13 +16,14 @@ export default function Connect() {
   const { merchantId } = useCase();
   
   const { data: connection, loading, error, reload } = useApiData(
-    () => isProduction ? Promise.resolve(null) : api.getMerchantConnection(merchantId),
-    [merchantId, isProduction]
+    () => api.getMerchantConnection(merchantId),
+    [merchantId]
   );
-  
+
   const [revealed, setRevealed] = useState(0);
-  const [apiKey, setApiKey] = useState("");
   const [isConnectingLive, setIsConnectingLive] = useState(false);
+  const [syncResult, setSyncResult] = useState<any>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
   useEffect(() => {
     if (isProduction) return;
@@ -33,15 +34,19 @@ export default function Connect() {
     return () => clearInterval(timer);
   }, [connection, isProduction]);
 
-  const handleLiveConnect = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!apiKey) return;
+  const handleLiveConnect = async () => {
     setIsConnectingLive(true);
-    // Simulate connection failure because this sandbox doesn't have live API keys yet
-    setTimeout(() => {
+    setSyncError(null);
+    setSyncResult(null);
+    try {
+      const result = await api.syncMerchant(merchantId);
+      setSyncResult(result);
+      reload();
+    } catch (e: any) {
+      setSyncError(String(e?.data?.detail || e?.message || e));
+    } finally {
       setIsConnectingLive(false);
-      alert("Error: Live gateway connection requires the GatewayAdapter abstraction to be deployed. No mock data is loaded in this environment.");
-    }, 1500);
+    }
   };
 
   return (
@@ -58,7 +63,7 @@ export default function Connect() {
         </p>
       </div>
 
-      {error && !isProduction && <ErrorBanner message={error} onRetry={reload} />}
+      {(error || syncError) && <ErrorBanner message={syncError || error || ""} onRetry={syncError ? handleLiveConnect : reload} />}
 
       {isProduction ? (
         <div className="paper-card max-w-[520px] px-8 py-8 mb-10 border-gold/30 shadow-lg">
@@ -67,33 +72,25 @@ export default function Connect() {
             <p className="font-display text-[20px]">Live Production Mode</p>
           </div>
           <div className="h-px bg-surface_border/30 mb-6" />
-          <form onSubmit={handleLiveConnect} className="space-y-4">
-            <div>
-              <label className="block text-[13px] font-ui text-text_primary/70 mb-2">
-                Gateway Read-Only API Key (Stripe / Razorpay)
-              </label>
-              <div className="relative">
-                <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text_primary/40" />
-                <input 
-                  type="password" 
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  placeholder="rk_live_..."
-                  className="w-full bg-transparent border border-forest/20 rounded-xl py-3 pl-10 pr-4 text-[14px] focus:outline-none focus:border-gold focus:ring-1 focus:ring-gold"
-                />
-              </div>
-            </div>
-            <button 
-              type="submit"
-              disabled={isConnectingLive || !apiKey}
-              className="w-full btn-primary mt-2"
-            >
-              {isConnectingLive ? "Syncing Ledger..." : "Connect Gateway"}
-            </button>
-          </form>
-          <p className="text-[12px] text-text_primary/45 mt-6 text-center">
-            You are in the production environment. Mock data has been strictly disabled.
-          </p>
+          <button
+            type="button"
+            onClick={handleLiveConnect}
+            disabled={isConnectingLive || !connection?.connected}
+            className="w-full btn-primary mt-2 flex items-center justify-center gap-2"
+          >
+            <RefreshCw size={15} className={isConnectingLive ? "animate-spin" : ""} />
+            {isConnectingLive ? "Syncing live payout ledger..." : "Sync live payout ledger"}
+          </button>
+          {syncResult && (
+            <p className="text-[12px] text-text_primary/60 mt-4 text-center">
+              Pulled {syncResult.fetched} payouts. {syncResult.imported_or_updated} are now available to FIRST HOUR.
+            </p>
+          )}
+          {!connection?.connected && (
+            <p className="text-[12px] text-text_primary/45 mt-6 text-center">
+              No live RazorpayX integration is configured on this deployment. FIRST HOUR will not fabricate a connection.
+            </p>
+          )}
         </div>
       ) : (
         !error && (
