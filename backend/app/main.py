@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from contextlib import asynccontextmanager
 
@@ -7,7 +7,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import routes_demo, routes_evidence, routes_incident, routes_merchant, routes_metrics, routes_recovery
 from app.core.config import get_settings
-from app.core.database import Base, engine
 
 
 settings = get_settings()
@@ -16,9 +15,11 @@ if not settings.demo_mode:
     if not settings.auth_provider_domain or not settings.auth_provider_audience:
         raise RuntimeError("DEMO_MODE is false but no production authentication provider is configured. System halted.")
 
+
 @asynccontextmanager
-def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI):
     yield
+
 
 app = FastAPI(
     title="FIRST HOUR",
