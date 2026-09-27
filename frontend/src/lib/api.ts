@@ -89,6 +89,8 @@ export const api = {
     request<any>(`/merchant/${merchantId}/connection`),
   getMerchantBaseline: (merchantId: string) =>
     request<any>(`/merchant/${merchantId}/baseline`),
+  syncMerchant: (merchantId: string) =>
+    request<any>(`/merchant/${merchantId}/sync`, { method: "POST" }),
 
   listIncidents: () => request<any[]>(`/incidents`),
   getIncident: (incidentId: string) => request<any>(`/incident/${incidentId}`),
