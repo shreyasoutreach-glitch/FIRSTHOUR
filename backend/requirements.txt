@@ -12,3 +12,4 @@ google-genai==0.3.0
 razorpay==1.4.1
 PyJWT
 cryptography
+pypdf
