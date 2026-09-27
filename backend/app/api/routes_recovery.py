@@ -14,6 +14,7 @@ from app.schemas.schemas import (
 )
 from app.services.recovery import command as recovery_command
 from app.services.recovery.convergence import check_convergence
+from app.services.integrations import razorpayx
 
 router = APIRouter(tags=["recovery-command"])
 
@@ -127,6 +128,10 @@ def execute(command_id: str, db: Session = Depends(get_tenant_db),
         rc = recovery_command.execute_command(db, rc, user.id)
     except recovery_command.InvalidRecoveryTransition as e:
         raise HTTPException(409, str(e))
+    except razorpayx.RazorpayXNotConfigured as e:
+        raise HTTPException(503, str(e))
+    except razorpayx.RazorpayXAPIError as e:
+        raise HTTPException(e.status, e.detail)
     return _serialize(rc)
 
 
