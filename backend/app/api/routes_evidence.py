@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import os
 import uuid
@@ -23,6 +23,41 @@ router = APIRouter(tags=["evidence"])
 settings = get_settings()
 
 
+def _stored_path(artifact: m.EvidenceArtifact, tenant_id: str) -> str:
+    return os.path.join(
+        settings.evidence_storage_dir,
+        f"tenant_{tenant_id}",
+        f"{artifact.id}_{artifact.filename}",
+    )
+
+
+def _extract_pdf_text(data: bytes) -> str:
+    try:
+        from io import BytesIO
+        from pypdf import PdfReader
+
+        reader = PdfReader(BytesIO(data))
+        return "\n".join(page.extract_text() or "" for page in reader.pages).strip()
+    except Exception:
+        return ""
+
+
+def _binary_evidence_extraction(
+    data: bytes,
+    mime_type: str,
+    artifact_id: str,
+) -> tuple[str, list[dict]]:
+    """Real extraction for images/scanned PDFs when GEMINI_API_KEY is configured.
+
+    No model output is marked verified here. It is only converted into candidate
+    claims and later cross-referenced against the canonical financial events.
+    """
+    from app.services.evidence.provider import GeminiEvidenceProvider
+
+    provider = GeminiEvidenceProvider(api_key=settings.gemini_api_key or None)
+    return provider.extract_binary(data, mime_type, artifact_id)
+
+
 @router.post("/evidence/upload")
 async def upload_evidence(
     file: UploadFile,
@@ -33,19 +68,15 @@ async def upload_evidence(
     _user: m.User = Depends(require_permission("INVESTIGATE")),
 ):
     data = await file.read()
-    if not validate_mime(file.content_type or "application/octet-stream"):
-        raise HTTPException(400, f"Unsupported MIME type: {file.content_type}")
+    mime_type = file.content_type or "application/octet-stream"
+    if not validate_mime(mime_type):
+        raise HTTPException(400, f"Unsupported MIME type: {mime_type}")
 
     digest = sha256_bytes(data)
-    tenant_dir = os.path.join(settings.evidence_storage_dir, f'tenant_{_user.tenant_id}')
+    tenant_dir = os.path.join(settings.evidence_storage_dir, f"tenant_{_user.tenant_id}")
     os.makedirs(tenant_dir, exist_ok=True)
     artifact_id = f"EVD_{uuid.uuid4().hex[:10]}"
 
-    # file.filename is untrusted client input -- safe_filename() strips any
-    # directory components / traversal sequences before it ever touches a
-    # path, and is_path_contained() below is a second, independent check on
-    # the resolved destination so a single sanitization bug here can't turn
-    # into an arbitrary-file-write.
     display_filename = safe_filename(file.filename)
     stored_path = os.path.join(tenant_dir, f"{artifact_id}_{display_filename}")
     if not is_path_contained(tenant_dir, stored_path):
@@ -55,51 +86,82 @@ async def upload_evidence(
         f.write(data)
 
     raw_text = ""
-    extraction_status = "queued"
-    if (file.content_type or "").startswith("text/"):
+    extraction_status = "queued_for_vision_extraction"
+    if mime_type.startswith("text/"):
         raw_text = data.decode("utf-8", errors="ignore")
         extraction_status = "text_ready"
-    else:
-        # Image/PDF vision extraction is a real pipeline stage (see
-        # ARCHITECTURE.md) but requires an OCR/vision backend this sandboxed
-        # demo does not ship with. We are honest about that here rather than
-        # faking a result.
-        extraction_status = "queued_for_vision_extraction"
+    elif mime_type == "application/pdf":
+        raw_text = _extract_pdf_text(data)
+        if raw_text:
+            extraction_status = "text_ready"
 
     artifact = m.EvidenceArtifact(
-        id=artifact_id, incident_id=incident_id, merchant_id=merchant_id,
-        filename=display_filename, mime_type=file.content_type or "application/octet-stream",
-        sha256=digest, source_label=source_label, raw_text=raw_text,
+        id=artifact_id,
+        incident_id=incident_id,
+        merchant_id=merchant_id,
+        filename=display_filename,
+        mime_type=mime_type,
+        sha256=digest,
+        source_label=source_label,
+        raw_text=raw_text,
         extraction_status=extraction_status,
     )
     db.add(artifact)
-    audit_log(db, incident_id=incident_id, actor="SYSTEM", event_type="EVIDENCE_UPLOADED",
-              summary=f"{display_filename} ({digest[:12]}...)", sources=[artifact_id], detail={})
+    audit_log(
+        db,
+        incident_id=incident_id,
+        actor="SYSTEM",
+        event_type="EVIDENCE_UPLOADED",
+        summary=f"{display_filename} ({digest[:12]}...)",
+        sources=[artifact_id],
+        detail={"mime_type": mime_type, "extraction_status": extraction_status},
+    )
     db.commit()
 
     return {
-        "artifact_id": artifact.id, "filename": artifact.filename, "sha256": artifact.sha256,
-        "mime_type": artifact.mime_type, "extraction_status": artifact.extraction_status,
+        "artifact_id": artifact.id,
+        "filename": artifact.filename,
+        "sha256": artifact.sha256,
+        "mime_type": artifact.mime_type,
+        "extraction_status": artifact.extraction_status,
+        "vision_available": bool(settings.gemini_api_key),
     }
 
 
 @router.post("/evidence/analyze")
-def analyze_evidence(artifact_id: str = Form(...), db: Session = Depends(get_tenant_db),
-                     _user: m.User = Depends(require_permission("INVESTIGATE"))):
+def analyze_evidence(
+    artifact_id: str = Form(...),
+    db: Session = Depends(get_tenant_db),
+    _user: m.User = Depends(require_permission("INVESTIGATE")),
+):
     artifact = db.get(m.EvidenceArtifact, artifact_id)
     if artifact is None:
         raise HTTPException(404, "artifact not found")
-    if artifact.extraction_status == "queued_for_vision_extraction":
-        raise HTTPException(
-            409,
-            "This artifact needs vision/OCR extraction, which this offline demo build does not "
-            "run. Provide ANTHROPIC_API_KEY and a vision-capable extractor, or upload a text export.",
-        )
 
-    candidates = extract_candidate_claims(artifact.raw_text, artifact.id)
+    if artifact.extraction_status == "queued_for_vision_extraction":
+        if not settings.gemini_api_key:
+            raise HTTPException(
+                503,
+                "This image/scanned PDF needs GEMINI_API_KEY for real multimodal extraction. "
+                "The artifact was stored and hashed, but no claims are fabricated.",
+            )
+
+        try:
+            with open(_stored_path(artifact, _user.tenant_id), "rb") as handle:
+                data = handle.read()
+            extracted_text, candidates = _binary_evidence_extraction(
+                data, artifact.mime_type, artifact.id
+            )
+            artifact.raw_text = extracted_text
+        except Exception as exc:
+            raise HTTPException(502, f"Vision extraction failed: {exc}") from exc
+    else:
+        candidates = extract_candidate_claims(artifact.raw_text, artifact.id)
 
     financial_events = (
-        db.query(m.FinancialEvent).filter(m.FinancialEvent.merchant_id == artifact.merchant_id).all()
+        db.query(m.FinancialEvent)
+        .filter(m.FinancialEvent.merchant_id == artifact.merchant_id)
+        .all()
     )
     candidate_events = [(fe.id, fe.amount) for fe in financial_events]
 
@@ -108,7 +170,9 @@ def analyze_evidence(artifact_id: str = Form(...), db: Session = Depends(get_ten
         status = "UNVERIFIED"
         matched = ""
         if c["claim_type"] == "amount":
-            status, matched = cross_reference_amount_claim(c["claim_value"]["amount"], candidate_events)
+            status, matched = cross_reference_amount_claim(
+                c["claim_value"]["amount"], candidate_events
+            )
         if status == "VERIFIED":
             verified_count += 1
         elif status == "CONFLICTING":
@@ -116,25 +180,41 @@ def analyze_evidence(artifact_id: str = Form(...), db: Session = Depends(get_ten
         else:
             unverified_count += 1
 
-        db.add(m.ExtractedClaim(
-            id=c["id"], source_artifact_id=c["source_artifact_id"],
-            source_location=c["source_location"], extraction_method=c["extraction_method"],
-            claim_type=c["claim_type"], claim_value=c["claim_value"],
-            verification_status=status, matched_financial_event_id=matched,
-        ))
+        db.add(
+            m.ExtractedClaim(
+                id=c["id"],
+                source_artifact_id=c["source_artifact_id"],
+                source_location=c["source_location"],
+                extraction_method=c["extraction_method"],
+                claim_type=c["claim_type"],
+                claim_value=c["claim_value"],
+                verification_status=status,
+                matched_financial_event_id=matched,
+            )
+        )
 
     artifact.extraction_status = "extracted"
-    audit_log(db, incident_id=artifact.incident_id, actor="SYSTEM", event_type="EVIDENCE_ANALYZED",
-              summary=f"{len(candidates)} candidate claims extracted from {artifact.filename}",
-              sources=[artifact.id], detail={"verified": verified_count, "conflicting": conflicting_count,
-                                              "unverified": unverified_count})
+    audit_log(
+        db,
+        incident_id=artifact.incident_id,
+        actor="SYSTEM",
+        event_type="EVIDENCE_ANALYZED",
+        summary=f"{len(candidates)} candidate claims extracted from {artifact.filename}",
+        sources=[artifact.id],
+        detail={
+            "verified": verified_count,
+            "conflicting": conflicting_count,
+            "unverified": unverified_count,
+        },
+    )
     db.commit()
 
     return {
         "artifact_id": artifact.id,
         "claims": candidates,
         "verification_summary": {
-            "verified": verified_count, "conflicting": conflicting_count, "unverified": unverified_count,
+            "verified": verified_count,
+            "conflicting": conflicting_count,
+            "unverified": unverified_count,
         },
     }
-
