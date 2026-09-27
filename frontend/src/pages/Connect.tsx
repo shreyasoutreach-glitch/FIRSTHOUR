@@ -58,7 +58,7 @@ export default function Connect() {
         </h1>
         <p className="text-[15px] leading-relaxed text-text_primary/70 mb-10 max-w-[500px]">
           {isProduction 
-            ? "Enter your read-only gateway key. FIRST HOUR will securely sync your live ledger without using mock data."
+            ? "FIRST HOUR uses server-side RazorpayX credentials. Once configured, this screen pulls the real payout ledger without loading mock financial data."
             : "FIRST HOUR reads your financial activity to reconstruct an incident. It does not initiate payouts, refunds, transfers or freezes."}
         </p>
       </div>
@@ -102,7 +102,7 @@ export default function Connect() {
             </div>
             <span className="text-[11px] font-ui uppercase tracking-wide text-emerald border border-emerald/40
                               rounded-full px-2.5 py-1">
-              {connection?.connected ? "Connected" : "Connecting"}
+              {connection?.connected ? "Connected" : "Demo"}
             </span>
           </div>
 
