@@ -122,6 +122,11 @@ def decimal_amount(value) -> Decimal:
     return Decimal(str(value or 0))
 
 
+def mask_bank_account(value: str) -> str:
+    digits = "".join(ch for ch in str(value or "") if ch.isdigit())
+    return f"******{digits[-4:]}" if len(digits) >= 4 else ""
+
+
 def normalize_payout(raw: dict) -> dict:
     fund = raw.get("fund_account") or {}
     contact = fund.get("contact") or {}
@@ -145,6 +150,6 @@ def normalize_payout(raw: dict) -> dict:
         "fund_account_id": fund.get("id", raw.get("fund_account_id", "")),
         "account_type": fund.get("account_type", "bank_account"),
         "vpa": vpa.get("address", ""),
-        "masked_bank_account": bank.get("account_number", ""),
+        "masked_bank_account": mask_bank_account(bank.get("account_number", "")),
         "masked_ifsc": bank.get("ifsc", ""),
     }
