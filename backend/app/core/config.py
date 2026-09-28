@@ -12,6 +12,9 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./first_hour.db"
     demo_mode: bool = True
     demo_bootstrap_on_start: bool = False
+    # Stable demo identity used only in DEMO_MODE so a full dataset reset cannot
+    # temporarily delete the bearer identity that the UI is using.
+    demo_master_token: str = "3e7d80fdfed273606f4c76ff8b24f98b098d2f129a31e399"
     seed: int = 42
     evidence_storage_dir: str = "./storage/evidence"
     anthropic_api_key: str = ""
