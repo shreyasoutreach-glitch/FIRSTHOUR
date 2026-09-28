@@ -49,12 +49,12 @@ export default function HumanWitness() {
 
   return (
     <div className="max-w-canvas mx-auto px-6 sm:px-10 py-16">
-      <p className="label-eyebrow mb-4">Step 5 &middot; Human Witness</p>
+      <p className="label-eyebrow mb-4">Investigation · 06 · Human Witness</p>
       <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-4">
-        One thing only you can tell us.
+        One question can change the case.
       </h1>
       <p className="text-[15px] leading-relaxed text-text_primary/70 mb-14 max-w-[520px]">
-        We ask one question at a time, starting with the one that changes the case the most.
+        Primhora does not invent certainty. When the records cannot answer something, it asks the operator who can.
       </p>
 
       <div className="max-w-[600px]">
@@ -98,7 +98,7 @@ export default function HumanWitness() {
                 the evidence you shared.
               </p>
               <button className="btn-primary" onClick={() => navigate("/exposure")}>
-                See the exposure
+                Lock the exposure
               </button>
             </div>
           )}
