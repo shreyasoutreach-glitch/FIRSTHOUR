@@ -74,6 +74,11 @@ def root():
     return _health_payload()
 
 
+@app.head("/")
+def root_head():
+    return None
+
+
 @app.get("/health")
 def health_check():
     return _health_payload()
