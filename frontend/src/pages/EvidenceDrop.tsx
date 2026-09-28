@@ -63,11 +63,10 @@ export default function EvidenceDrop() {
   return (
     <div className="max-w-canvas mx-auto px-6 sm:px-10 py-16">
       <div className="max-w-[640px] mb-10">
-        <p className="label-eyebrow mb-4">Step 2 of 3 &middot; Evidence</p>
-        <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-4">Bring what you have.</h1>
+        <p className="label-eyebrow mb-4">Investigation · 03 · Evidence</p>
+        <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-4">Now we find out why it happened.</h1>
         <p className="text-[15px] leading-relaxed text-text_primary/70 max-w-[500px]">
-          Screenshots, PDFs, bank statements, SMS or email exports &mdash; whatever you have is
-          enough to start. We already pulled in what came through your Finance Ops thread.
+          Primhora assembles the evidence around the synthetic incident: financial records, communications and supporting artifacts. Add your own file if you want to test the evidence pipeline.
         </p>
       </div>
 
@@ -115,7 +114,7 @@ export default function EvidenceDrop() {
       )}
 
       <button className="btn-primary" onClick={() => navigate("/reconstruction")}>
-        Continue to reconstruction
+        Build the incident reconstruction
       </button>
 
       <StepFooter current="/evidence" />
