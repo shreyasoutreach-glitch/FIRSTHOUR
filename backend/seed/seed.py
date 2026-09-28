@@ -128,6 +128,7 @@ def _make_merchant(db: TenantScopedSession, fake: Faker, rng: random.Random, mer
     merchant = m.Merchant(id=merchant_id, name=name, category=category, is_flagship=is_flagship,
                           created_at=HISTORY_START - dt.timedelta(days=rng.randint(30, 400)))
     db.add(merchant)
+    db.flush()
     for _ in range(rng.randint(2, 4)):
         db.add(m.Employee(
             id=_short_id("EMP"), merchant_id=merchant_id, name=fake.name(),
