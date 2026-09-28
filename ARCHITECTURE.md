@@ -1,4 +1,4 @@
-# FIRST HOUR — Architecture
+# PRIMHORA — Architecture
 
 ## System diagram
 

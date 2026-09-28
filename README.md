@@ -1,7 +1,7 @@
-# FIRST HOUR
+# PRIMHORA
 
 **Financial incident reconstruction.** When money moves under suspicious circumstances,
-FIRST HOUR turns scattered evidence and structured Razorpay financial data into a calm,
+PRIMHORA turns scattered evidence and structured Razorpay financial data into a calm,
 traceable, recovery-ready incident in minutes.
 
 Built for the Razorpay AI Buildathon. This is a working prototype: real backend, real
@@ -21,7 +21,7 @@ human being can act on in the next ten minutes.
 
 ## Solution
 
-FIRST HOUR ingests whatever evidence a merchant has (screenshots, exports, messages) and
+PRIMHORA ingests whatever evidence a merchant has (screenshots, exports, messages) and
 cross-references it against their real Razorpay financial records — payments, payouts,
 contacts, fund accounts — to reconstruct: what happened, when, where the money moved,
 which beneficiaries were involved, how it differs from the merchant's own normal
@@ -29,7 +29,7 @@ behavior, what's still unconfirmed, and what to do next. It asks the merchant ex
 question at a time, only when a human genuinely knows something the data can't show, and
 ends with a recovery packet built for a bank's fraud desk or India's cybercrime portal.
 
-## Why FIRST HOUR (and not another AI dashboard)
+## Why PRIMHORA (and not another AI dashboard)
 
 The product makes one architectural promise and holds to it everywhere:
 
@@ -69,10 +69,10 @@ Razorpay-shaped primitives, not one generic "transaction" table: `merchants`,
 
 ## Risk / safety boundaries
 
-- **Read-only.** FIRST HOUR never initiates a payout, refund, transfer, or freeze. It
+- **Read-only.** PRIMHORA never initiates a payout, refund, transfer, or freeze. It
   reads Razorpay-shaped data; it does not act on it. This is stated on the Connect screen.
 - **No claim of fund recovery.** Recovery Command and the Recovery Packet explicitly
-  separate what FIRST HOUR *prepares* (a packet, a timeline, a next-steps list) from what
+  separate what PRIMHORA *prepares* (a packet, a timeline, a next-steps list) from what
   only a bank, Razorpay, or the police can actually do. Nothing in the UI claims money has
   been frozen, reversed, or recovered.
 - **No fabricated integrations.** There is no real bank API call, no real 1930 dial, no

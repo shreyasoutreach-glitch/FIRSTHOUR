@@ -1,4 +1,4 @@
-# FIRST HOUR Live Integrations
+# PRIMHORA Live Integrations
 
 The deployed system fails closed when live provider credentials are absent. It never reports a live connection or successful recovery action from mock data.
 
@@ -12,7 +12,7 @@ Set these backend environment variables on Render:
 - `RAZORPAY_MERCHANT_ID`
 - `RAZORPAY_WEBHOOK_SECRET`
 
-With the first three configured, FIRST HOUR can fetch the RazorpayX payout ledger and normalize payouts into its canonical financial model.
+With the first three configured, PRIMHORA can fetch the RazorpayX payout ledger and normalize payouts into its canonical financial model.
 
 With the webhook values configured, POST Razorpay payout webhooks to:
 
@@ -24,13 +24,13 @@ Webhook signatures are verified using HMAC-SHA256 before the payload is accepted
 
 `FREEZE_PAYOUT` can execute against a real RazorpayX payout when:
 
-1. the command has passed FIRST HOUR's existing propose -> review -> approve state machine;
+1. the command has passed PRIMHORA's existing propose -> review -> approve state machine;
 2. the target payout is actually in RazorpayX's `queued` state;
 3. RazorpayX credentials are configured.
 
 The provider operation is the documented queued-payout cancellation endpoint.
 
-`REVERSE_PAYOUT` remains a manual recovery path for processed payouts. FIRST HOUR does not claim that a processed RazorpayX payout can be cancelled through the queued-payout API.
+`REVERSE_PAYOUT` remains a manual recovery path for processed payouts. PRIMHORA does not claim that a processed RazorpayX payout can be cancelled through the queued-payout API.
 
 ## Evidence extraction
 

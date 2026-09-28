@@ -26,9 +26,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       >
         <div className="max-w-canvas mx-auto flex items-center justify-between px-6 py-3 sm:px-10">
           <Link to="/" className="flex items-baseline gap-2.5">
-            <span className="font-display text-[17px] tracking-tight">FIRST HOUR</span>
+            <span className="font-display text-[17px] tracking-tight">PRIMHORA</span>
             <span className={`label-eyebrow ${isDark ? "text-graphite/50" : ""}`}>
-              Private case &middot; Demo workspace
+              Private case · Demo workspace
             </span>
           </Link>
           <nav className="flex items-center gap-5">
@@ -67,7 +67,7 @@ export function StepFooter({ current }: { current: string }) {
             <span className={i === idx ? "text-text_primary font-medium" : i < idx ? "text-text_primary/60" : ""}>
               {s.label}
             </span>
-            {i < STEPS.length - 1 && <span aria-hidden>&rarr;</span>}
+            {i < STEPS.length - 1 && <span aria-hidden>→</span>}
           </li>
         ))}
       </ol>
