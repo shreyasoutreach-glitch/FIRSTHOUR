@@ -11,6 +11,7 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite:///./first_hour.db"
     demo_mode: bool = True
+    demo_bootstrap_on_start: bool = False
     seed: int = 42
     evidence_storage_dir: str = "./storage/evidence"
     anthropic_api_key: str = ""
