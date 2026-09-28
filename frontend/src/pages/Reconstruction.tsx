@@ -32,12 +32,12 @@ export default function Reconstruction() {
   return (
     <div className="max-w-canvas mx-auto px-6 sm:px-10 py-16">
       <div className="max-w-[640px] mb-10">
-        <p className="label-eyebrow mb-4">Step 3 of 3 &middot; Reconstruction</p>
+        <p className="label-eyebrow mb-4">Investigation · 04 · Reconstruction</p>
         <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-4">
           Putting the story together.
         </h1>
         <p className="text-[15px] leading-relaxed text-text_primary/70">
-          We&rsquo;re linking what you gave us to what your Razorpay records already show.
+          Primhora is correlating the evidence with the synthetic financial ledger to reconstruct a single, traceable sequence of events.
         </p>
       </div>
 
@@ -88,7 +88,7 @@ export default function Reconstruction() {
         </motion.div>
 
         <motion.div initial="hidden" animate="show" custom={2} variants={columnVariants}>
-          <p className="label-eyebrow mb-3">Razorpay Records</p>
+          <p className="label-eyebrow mb-3">Financial Ledger</p>
           <div className="space-y-3">
             {payoutEvents.map((e: any) => (
               <div key={e.id} className="paper-card px-4 py-3">
@@ -108,7 +108,7 @@ export default function Reconstruction() {
 
       <div className="mt-12">
         <button className="btn-primary" disabled={loading || !!error} onClick={() => navigate("/incident")}>
-          View the incident
+          Show me what happened
         </button>
       </div>
 
