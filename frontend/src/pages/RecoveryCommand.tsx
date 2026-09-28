@@ -109,13 +109,12 @@ export default function RecoveryCommand() {
 
   return (
     <div className="max-w-canvas mx-auto px-6 sm:px-10 py-16">
-      <p className="label-eyebrow mb-4">Step 7 &middot; Recovery Command</p>
+      <p className="label-eyebrow mb-4">Decision · 08 · Recovery</p>
       <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-4">
-        What can still be recovered?
+        Now decide what to do.
       </h1>
       <p className="text-[15px] leading-relaxed text-text_primary/70 mb-10 max-w-[600px]">
-        Every action below is proposed, reviewed and approved separately &mdash; and even once
-        executed, it is <strong>simulated</strong>. Nothing here moves real money.
+        Primhora turns the reconstructed case into a governed recovery decision. Every action is proposed, reviewed and approved separately. Execution in this experience is always <strong>simulated</strong>.
       </p>
 
       {error && <ErrorBanner message={error} onRetry={reload} />}
@@ -210,7 +209,7 @@ export default function RecoveryCommand() {
                 {command?.state === "APPROVED" && (
                   <>
                     <button className="btn-secondary" disabled={busy} onClick={dryRun}>Dry run</button>
-                    <button className="btn-primary" disabled={busy} onClick={execute}>Execute (simulated)</button>
+                    <button className="btn-primary" disabled={busy} onClick={execute}>Execute simulated recovery</button>
                   </>
                 )}
                 {command?.state === "EXECUTED" && (
@@ -258,7 +257,7 @@ export default function RecoveryCommand() {
 
       <div className="mt-12">
         <button className="btn-primary" onClick={() => navigate("/recovery/packet")}>
-          View recovery packet
+          Generate recovery packet
         </button>
       </div>
 
