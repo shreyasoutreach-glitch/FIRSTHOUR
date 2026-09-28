@@ -247,8 +247,8 @@ export default function RecoveryCommand() {
           <aside className="paper-card px-6 py-6 h-fit">
             <p className="label-eyebrow mb-3">What this does not do</p>
             <ul className="text-[13px] text-text_primary/65 space-y-2 leading-relaxed">
-              <li>FIRST HOUR does not contact Arrow Industries&rsquo; bank.</li>
-              <li>FIRST HOUR does not freeze or reverse anything with a real payment network.</li>
+              <li>PRIMHORA does not contact Arrow Industries&rsquo; bank.</li>
+              <li>PRIMHORA does not freeze or reverse anything with a real payment network.</li>
               <li>Execution here is always recorded as SIMULATED, never EXECUTED-for-real.</li>
               <li>Only an Administrator-permissioned user can execute, and never the same person who proposed it can approve it.</li>
             </ul>
