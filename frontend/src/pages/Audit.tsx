@@ -26,7 +26,7 @@ export default function Audit() {
         The accountable record.
       </h1>
       <p className="text-[15px] leading-relaxed text-text_primary/70 mb-12 max-w-[560px]">
-        Every material action FIRST HOUR or a human took on this case, in order. This is not a
+        Every material action PRIMHORA or a human took on this case, in order. This is not a
         narrative &mdash; it is a log.
       </p>
 
