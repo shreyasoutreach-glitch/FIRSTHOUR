@@ -1,5 +1,5 @@
 /**
- * Thin fetch wrapper over the FIRST HOUR API. Every function here maps to
+ * Thin fetch wrapper over the Primhora API. Every function here maps to
  * exactly one backend endpoint -- no client-side re-derivation of financial
  * facts happens anywhere in this file or in the components that call it.
  *
