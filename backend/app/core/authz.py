@@ -40,9 +40,21 @@ def get_current_user(authorization: str = Header(default=""), db: Session = Depe
     
     if settings.demo_mode:
         user = db.query(User).filter(User.api_token == token).first()
-        if user is None:
-            raise HTTPException(401, "Invalid token")
-        return user
+        if user is not None:
+            return user
+        # The demo reset wipes and recreates users. During that short window,
+        # browser requests must retain their demo identity instead of becoming
+        # transient 401s. This identity exists only while DEMO_MODE is enabled.
+        if token == settings.demo_master_token:
+            return User(
+                id="USR_DEMO_MASTER",
+                tenant_id="TEN_NORTHBRIDGE",
+                email="administrator@northbridge.demo",
+                display_name="Administrator (Demo Master)",
+                role="ADMINISTRATOR",
+                api_token=settings.demo_master_token,
+            )
+        raise HTTPException(401, "Invalid token")
 
     # PRODUCTION OIDC JWT VALIDATION
     try:
