@@ -37,14 +37,14 @@ export default function TheIncident() {
 
   return (
     <div className="max-w-canvas mx-auto px-6 sm:px-10 py-16">
-      <p className="label-eyebrow mb-4">The Incident &middot; {incident.id}</p>
-      <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-8">Here&rsquo;s what happened.</h1>
+      <p className="label-eyebrow mb-4">Incident detected · {incident.id}</p>
+      <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-8">Here is the trail.</h1>
 
       <div className="mb-4">
         <p className="hero-money text-[52px] sm:text-[68px] leading-none text-text_primary">
           {formatINR(h.total_exposed)}
         </p>
-        <p className="label-eyebrow text-vermillion mt-2">Exposed</p>
+        <p className="label-eyebrow text-vermillion mt-2">EXPOSURE IDENTIFIED</p>
       </div>
       <p className="text-[15px] font-ui text-text_primary/60 mb-14">
         {payoutCount} payouts &middot; {h.beneficiary_count} beneficiaries &middot; {formatDuration(h.window_seconds)}
@@ -102,7 +102,7 @@ export default function TheIncident() {
 
         {/* Right-hand evidence panel */}
         <aside className="paper-card px-6 py-6 h-fit">
-          <p className="label-eyebrow mb-4">Why this stands out</p>
+          <p className="label-eyebrow mb-4">Why the system escalated it</p>
           <ul className="space-y-4">
             <li>
               <p className="font-display text-[22px] text-vermillion">{h.multiple_of_median.toFixed(0)}&times;</p>
@@ -132,7 +132,7 @@ export default function TheIncident() {
 
       <div className="mt-14">
         <button className="btn-primary" onClick={() => navigate("/graph")}>
-          See the financial graph
+          Map the money
         </button>
       </div>
 
