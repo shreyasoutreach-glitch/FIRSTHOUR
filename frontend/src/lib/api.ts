@@ -46,7 +46,14 @@ export function setAccessTokenProvider(provider: () => Promise<string>) {
 
 export class APIError extends Error {
   constructor(public status: number, public data: any) {
-    super(`API Error ${status}`);
+    const detail = typeof data?.detail === "string"
+      ? data.detail
+      : Array.isArray(data?.detail)
+        ? data.detail.map((item: any) => item?.msg || String(item)).join("; ")
+        : null;
+    super(detail || `Request failed (${status})`);
+    this.status = status;
+    this.data = data;
     this.name = "APIError";
   }
 }
