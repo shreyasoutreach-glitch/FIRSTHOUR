@@ -21,12 +21,12 @@ export default function Exposure() {
 
   return (
     <div className="max-w-canvas mx-auto px-6 sm:px-10 py-16">
-      <p className="label-eyebrow mb-4">Step 6 &middot; Exposure</p>
+      <p className="label-eyebrow mb-4">Investigation · 07 · Exposure</p>
       <h1 className="font-display text-[32px] sm:text-[36px] leading-tight mb-4">
-        How much is actually exposed?
+        Separate the exposure.
       </h1>
       <p className="text-[15px] leading-relaxed text-text_primary/70 mb-12 max-w-[560px]">
-        We keep these separate on purpose. A frightening single total helps no one make a decision.
+        Primhora separates money that has moved, money that can still be stopped, and money that was only attempted. That distinction drives the recovery decision.
       </p>
 
       {error && <ErrorBanner message={error} onRetry={reload} />}
@@ -65,7 +65,7 @@ export default function Exposure() {
       )}
 
       <button className="btn-primary" disabled={loading || !!error} onClick={() => navigate("/recovery")}>
-        Continue to recovery
+        Decide what can be recovered
       </button>
 
       <StepFooter current="/exposure" />
