@@ -1,7 +1,9 @@
-"""Bootstrap deterministic demo data only when DEMO_MODE is enabled and the database is empty.
+"""Bootstrap deterministic demo data only when DEMO_MODE is enabled and the
+expected seeded administrator is absent.
 
-This is intentionally idempotent: it never wipes a populated database. Production
-deployments must set DEMO_MODE=false and therefore skip this bootstrap entirely.
+This is intentionally idempotent for the shipped demo: it only resets/reseeds
+when the deterministic SEED=42 administrator token is missing. Production
+deployments must set DEMO_MODE=false and therefore skip this bootstrap.
 """
 from app.core.config import get_settings
 from app.core.database import SessionLocal
@@ -18,9 +20,10 @@ def main() -> None:
     db = SessionLocal()
     try:
         db.set_tenant(None)
-        user_count = db.query(m.User).count()
-        if user_count:
-            print(f"Demo bootstrap skipped: database already has {user_count} user(s)")
+        expected_admin_token = "3e7d80fdfed273606f4c76ff8b24f98b098d2f129a31e399"
+        admin_exists = db.query(m.User).filter(m.User.api_token == expected_admin_token).first()
+        if admin_exists:
+            print("Demo bootstrap skipped: deterministic administrator already present")
             return
         result = run_seed(db, seed_value=settings.seed)
         print(f"Demo bootstrap complete: {result}")
