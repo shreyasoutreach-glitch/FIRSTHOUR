@@ -1,4 +1,4 @@
-# FIRST HOUR — 5-Minute Demo Script
+# PRIMHORA — 5-Minute Demo Script
 
 **Setup (before judges arrive):** backend seeded and running on :8000, frontend running
 on :5173 (or the docker-compose stack on :8080). Load `http://localhost:5173/` fresh.
@@ -10,7 +10,7 @@ Network tab; every screen's data comes from the endpoints listed in `ARCHITECTUR
 ---
 
 ### 0:00 – 0:30 · Welcome → Connect
-Open on the calm, dark Welcome screen. Say: *"FIRST HOUR starts after suspicious money
+Open on the calm, dark Welcome screen. Say: *"PRIMHORA starts after suspicious money
 movement has already happened — the goal is turning panic into a clear case."* Click
 **Start recovery** → **Connect**. Point out: read-only, Demo/Sandbox labeled explicitly,
 scopes revealing (Payments, Payouts, Contacts, Fund Accounts, Events) are real merchant
@@ -55,7 +55,7 @@ Confirmed / Pending / Attempted / Related, never combined into one scarier numbe
 Click a "source" tag next to an amount to show it resolves to an exact payout ID.
 
 ### 4:00 – 4:20 · Recovery Command → Recovery Packet
-Say plainly: *"FIRST HOUR does not call the bank, does not call 1930, does not freeze
+Say plainly: *"PRIMHORA does not call the bank, does not call 1930, does not freeze
 anything — it prepares everything those channels will ask for."* Scroll the Recovery
 Packet to show it's the same case data, reassembled into something a bank's fraud desk
 or the cybercrime portal can act on immediately.
