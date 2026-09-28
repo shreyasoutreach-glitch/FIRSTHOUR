@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppShell from "./components/AppShell";
 import { CaseProvider } from "./lib/CaseContext";
 import Welcome from "./pages/Welcome";
+import DemoSetup from "./pages/DemoSetup";
 import Connect from "./pages/Connect";
 import EvidenceDrop from "./pages/EvidenceDrop";
 import Reconstruction from "./pages/Reconstruction";
@@ -16,26 +17,19 @@ import Audit from "./pages/Audit";
 import ChaosLab from "./pages/ChaosLab";
 
 export default function App() {
-  return (
-    <CaseProvider>
-      <BrowserRouter>
-        <AppShell>
-          <Routes>
-            <Route path="/" element={<Welcome />} />
-            <Route path="/connect" element={<Connect />} />
-            <Route path="/evidence" element={<EvidenceDrop />} />
-            <Route path="/reconstruction" element={<Reconstruction />} />
-            <Route path="/incident" element={<TheIncident />} />
-            <Route path="/graph" element={<FinancialGraph />} />
-            <Route path="/witness" element={<HumanWitness />} />
-            <Route path="/exposure" element={<Exposure />} />
-            <Route path="/recovery" element={<RecoveryCommand />} />
-            <Route path="/recovery/packet" element={<RecoveryPacket />} />
-            <Route path="/audit" element={<Audit />} />
-            <Route path="/chaos-lab" element={<ChaosLab />} />
-          </Routes>
-        </AppShell>
-      </BrowserRouter>
-    </CaseProvider>
-  );
+  return <CaseProvider><BrowserRouter><AppShell><Routes>
+    <Route path="/" element={<Welcome />} />
+    <Route path="/demo/setup" element={<DemoSetup />} />
+    <Route path="/connect" element={<Connect />} />
+    <Route path="/evidence" element={<EvidenceDrop />} />
+    <Route path="/reconstruction" element={<Reconstruction />} />
+    <Route path="/incident" element={<TheIncident />} />
+    <Route path="/graph" element={<FinancialGraph />} />
+    <Route path="/witness" element={<HumanWitness />} />
+    <Route path="/exposure" element={<Exposure />} />
+    <Route path="/recovery" element={<RecoveryCommand />} />
+    <Route path="/recovery/packet" element={<RecoveryPacket />} />
+    <Route path="/audit" element={<Audit />} />
+    <Route path="/chaos-lab" element={<ChaosLab />} />
+  </Routes></AppShell></BrowserRouter></CaseProvider>;
 }
