@@ -26,6 +26,9 @@ if not settings.demo_mode:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    if settings.demo_mode and settings.demo_bootstrap_on_start:
+        from seed.bootstrap import main as bootstrap_demo
+        bootstrap_demo()
     yield
 
 
