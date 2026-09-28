@@ -85,7 +85,7 @@ export default function ChaosLab() {
           </h1>
         </div>
         <button className="btn-secondary" onClick={reset} disabled={resetting}>
-          {resetting ? "Resettingâ€¦" : "Reset dataset"}
+          {resetting ? "Resetting…" : "Reset dataset"}
         </button>
       </div>
       <p className="text-[15px] leading-relaxed text-text_primary/70 mb-10 max-w-[600px]">
