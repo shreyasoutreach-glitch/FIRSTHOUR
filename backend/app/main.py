@@ -30,7 +30,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="FIRST HOUR",
+    title="Primhora",
     description="Early investigation and exposure mitigation for complex financial incidents.",
     lifespan=lifespan,
 )
@@ -53,10 +53,10 @@ app.include_router(routes_recovery.router, prefix="/api")
 app.include_router(routes_webhooks.router, prefix="/api")
 
 
-@app.get("/health")
-def health_check():
+def _health_payload() -> dict:
     return {
         "status": "ok",
+        "service": "primhora",
         "demo_mode": settings.demo_mode,
         "integrations": {
             "razorpayx": bool(
@@ -67,3 +67,13 @@ def health_check():
             "gemini_evidence": bool(settings.gemini_api_key),
         },
     }
+
+
+@app.get("/")
+def root():
+    return _health_payload()
+
+
+@app.get("/health")
+def health_check():
+    return _health_payload()
