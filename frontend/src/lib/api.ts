@@ -26,7 +26,7 @@ const BASE = import.meta.env.VITE_API_BASE_URL || "/api";
 // default SEED=42 -- printed by `python -m seed.seed` and returned by
 // POST /demo/reset. Change SEED and this will stop matching; use
 // VITE_DEMO_API_TOKEN to override.
-const DEMO_TOKEN = import.meta.env.VITE_DEMO_API_TOKEN
+let DEMO_TOKEN = import.meta.env.VITE_DEMO_API_TOKEN
   || "3e7d80fdfed273606f4c76ff8b24f98b098d2f129a31e399";
 
 // Deterministic demo tokens for every seeded role in TEN_NORTHBRIDGE at the
@@ -58,12 +58,12 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 async function requestAs<T>(token: string, path: string, options?: RequestInit): Promise<T> {
   const actualToken = getAccessToken ? await getAccessToken() : token;
   const res = await fetch(`${BASE}${path}`, {
+    ...options,
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${actualToken}`,
       ...(options?.headers || {}),
     },
-    ...options,
   });
 
   if (!res.ok) {
@@ -112,7 +112,7 @@ export const api = {
     form.append("source_label", sourceLabel);
     const res = await fetch(`${BASE}/evidence/upload`, {
       method: "POST", body: form,
-      headers: { "Authorization": `Bearer ${DEMO_TOKEN}` },
+      headers: { "Authorization": `Bearer ${getAccessToken ? await getAccessToken() : DEMO_TOKEN}` },
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();
@@ -122,7 +122,7 @@ export const api = {
     form.append("artifact_id", artifactId);
     const res = await fetch(`${BASE}/evidence/analyze`, {
       method: "POST", body: form,
-      headers: { "Authorization": `Bearer ${DEMO_TOKEN}` },
+      headers: { "Authorization": `Bearer ${getAccessToken ? await getAccessToken() : DEMO_TOKEN}` },
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();
@@ -133,7 +133,15 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ scenario, merchant_id: merchantId }),
     }),
-  resetDemo: () => request<any>(`/demo/reset`, { method: "POST" }),
+  resetDemo: async () => {
+    const result = await request<any>(`/demo/reset`, { method: "POST" });
+    const resetToken = result?.tokens_by_tenant?.TEN_NORTHBRIDGE?.ADMINISTRATOR;
+    if (resetToken) {
+      DEMO_TOKEN = resetToken;
+      DEMO_TOKENS.ADMINISTRATOR = resetToken;
+    }
+    return result;
+  },
 
   getMetrics: () => request<any>(`/metrics`),
   getEvaluation: () => request<any>(`/evaluation`),
