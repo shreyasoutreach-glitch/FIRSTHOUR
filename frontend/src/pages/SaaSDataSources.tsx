@@ -1,18 +1,37 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Database, UploadCloud, ShieldCheck, ArrowRight } from "lucide-react";
+import { Database, UploadCloud, ShieldCheck, ArrowRight, FileCheck2, X } from "lucide-react";
 
 export default function SaaSDataSources(){
  const workspace=sessionStorage.getItem("primhora_workspace");
- return <div className="min-h-[calc(100vh-56px)] bg-graphite text-text_primary"><div className="max-w-canvas mx-auto px-6 sm:px-10 py-10">
+ const [file,setFile]=useState<File|null>(null);
+ const [preview,setPreview]=useState<{rows:number,columns:string[]}|null>(null);
+ const inputRef=useRef<HTMLInputElement>(null);
+
+ const inspect=(next:File|null)=>{
+   setFile(next); setPreview(null);
+   if(!next) return;
+   if(!next.name.toLowerCase().endsWith(".csv")) return;
+   const reader=new FileReader();
+   reader.onload=()=>{const text=String(reader.result||"");const lines=text.split(/\r?\n/).filter(Boolean);const columns=(lines[0]||"").split(",").map(x=>x.trim()).filter(Boolean);setPreview({rows:Math.max(0,lines.length-1),columns});};
+   reader.readAsText(next.slice(0,1024*1024));
+ };
+
+ return <div className="min-h-[calc(100vh-56px)] bg-graphite text-text_primary"><div className="max-w-canvas mx-auto px-5 sm:px-10 py-10">
   <p className="label-eyebrow text-text_primary/35">Workspace · Data sources</p><h1 className="font-display text-4xl mt-2">Financial data</h1>
-  <p className="text-sm text-text_primary/45 mt-2 max-w-2xl">Connect authorized financial records to your organization. Primhora does not claim a live provider connection until one has actually been configured.</p>
-  {!workspace ? <div className="mt-8 rounded-2xl border border-surface_border bg-surface p-10 max-w-2xl"><Database size={20}/><h2 className="font-display text-2xl mt-6">Create your organization first</h2><p className="text-sm leading-relaxed text-text_primary/45 mt-2">This new workspace has no organization or data sources yet. Once you create one, you can begin connecting authorized records.</p><Link to="/app" className="inline-flex items-center gap-2 mt-6 rounded-xl bg-text_primary text-graphite px-5 py-3 text-sm font-medium">Set up workspace <ArrowRight size={14}/></Link></div> :
-  <><div className="grid lg:grid-cols-2 gap-5 mt-8">
-   <Source title="Payment provider" status="NOT CONNECTED" copy="No live payment provider credentials are configured for this workspace. Primhora will only show CONNECTED after an authorized integration is actually established." icon={ShieldCheck}/>
-   <Source title="Bank / ledger import" status="READY" copy="Import authorized CSV or ledger records for your organization. Imported records become workspace data, not demo data." icon={UploadCloud}/>
-  </div>
-  <div className="mt-6 rounded-2xl border border-surface_border bg-surface p-6"><p className="label-eyebrow text-text_primary/35">Workspace state</p><p className="font-display text-xl mt-3">{workspace}</p><p className="text-xs text-text_primary/40 mt-2">No sources connected yet. No incidents will be generated until financial data is available.</p></div></>}
+  <p className="text-sm text-text_primary/45 mt-2 max-w-2xl">Primhora separates data provenance from analysis. A source is only marked connected after the backend has actually accepted and validated it.</p>
+  {!workspace ? <div className="mt-8 panel p-10 max-w-2xl"><Database size={20}/><h2 className="font-display text-2xl mt-6">Create your organization first</h2><p className="text-sm leading-relaxed text-text_primary/45 mt-2">Your workspace has no organization or data sources yet.</p><Link to="/app" className="inline-flex items-center gap-2 mt-6 rounded-xl bg-text_primary text-graphite px-5 py-3 text-sm font-medium">Set up workspace <ArrowRight size={14}/></Link></div> :
+  <div className="mt-8 space-y-5">
+   <div className="grid lg:grid-cols-2 gap-5">
+    <Source title="Payment provider" status="NOT CONNECTED" copy="No live provider credentials are configured. Primhora will only show CONNECTED after an authorized backend connection has been verified." icon={ShieldCheck}/>
+    <div className="panel p-6"><div className="flex justify-between"><UploadCloud size={20}/><span className="status-pill border-amber/25 text-amber/70">FILE IMPORT</span></div><h2 className="font-display text-xl mt-8">Ledger import</h2><p className="text-sm leading-relaxed text-text_primary/50 mt-2">Validate a CSV locally before an authorized ingestion workflow is enabled. This preview never sends financial data anywhere.</p>
+      <input ref={inputRef} type="file" accept=".csv,text/csv" className="hidden" onChange={e=>inspect(e.target.files?.[0]||null)}/>
+      <button onClick={()=>inputRef.current?.click()} className="mt-5 inline-flex items-center gap-2 rounded-lg border border-surface_border px-4 py-2.5 text-sm hover:bg-surface_raised">{file?<FileCheck2 size={15}/>:<UploadCloud size={15}/>} {file?"Inspect another CSV":"Inspect CSV"}</button>
+      {file&&<div className="mt-4 rounded-xl border border-surface_border bg-graphite/60 p-4"><div className="flex justify-between gap-4"><div><p className="text-sm">{file.name}</p><p className="text-[11px] text-text_primary/35 mt-1">{(file.size/1024).toFixed(1)} KB · preview only</p></div><button aria-label="Clear file" onClick={()=>{setFile(null);setPreview(null)}} className="text-text_primary/35 hover:text-text_primary"><X size={14}/></button></div>{preview?<><p className="text-xs text-text_primary/55 mt-4">{preview.rows.toLocaleString()} data rows detected.</p><div className="flex flex-wrap gap-1.5 mt-2">{preview.columns.slice(0,8).map(c=><span key={c} className="status-pill border-surface_border text-text_primary/45 normal-case tracking-normal">{c}</span>)}</div></>:<p className="text-xs text-amber/70 mt-3">CSV preview unavailable. The file has not been uploaded.</p>}</div>}
+    </div>
+   </div>
+   <div className="panel p-6"><p className="label-eyebrow text-text_primary/35">Workspace state</p><p className="font-display text-xl mt-3">{workspace}</p><div className="flex items-center gap-2 mt-3 text-xs text-text_primary/40"><span className="w-1.5 h-1.5 rounded-full bg-text_primary/30"/> No connected sources</div><p className="text-xs text-text_primary/35 mt-2">No incidents are generated from this workspace until a backend data source is actually connected.</p></div>
+  </div>}
  </div></div>;
 }
-function Source({title,status,copy,icon:Icon}:any){return <div className="rounded-2xl border border-surface_border bg-surface p-6"><div className="flex justify-between"><Icon size={20}/><span className="text-[10px] rounded-full border border-surface_border text-text_primary/45 px-2.5 py-1">{status}</span></div><h2 className="font-display text-xl mt-10">{title}</h2><p className="text-sm leading-relaxed text-text_primary/50 mt-2">{copy}</p></div>}
+function Source({title,status,copy,icon:Icon}:any){return <div className="panel p-6"><div className="flex justify-between"><Icon size={20}/><span className="status-pill border-surface_border text-text_primary/45">{status}</span></div><h2 className="font-display text-xl mt-8">{title}</h2><p className="text-sm leading-relaxed text-text_primary/50 mt-2">{copy}</p></div>}
