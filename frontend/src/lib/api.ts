@@ -26,18 +26,18 @@ const BASE = import.meta.env.VITE_API_BASE_URL || "/api";
 // default SEED=42 -- printed by `python -m seed.seed` and returned by
 // POST /demo/reset. Change SEED and this will stop matching; use
 // VITE_DEMO_API_TOKEN to override.
-let DEMO_TOKEN = import.meta.env.VITE_DEMO_API_TOKEN
-  || "3e7d80fdfed273606f4c76ff8b24f98b098d2f129a31e399";
+let DEMO_TOKEN = "";
+const DEMO_TOKENS: Record<string, string> = {};
 
-// Deterministic demo tokens for every seeded role in TEN_NORTHBRIDGE at the
-// default SEED=42. NOT real credentials -- see LIMITATIONS.md.
-export const DEMO_TOKENS: Record<string, string> = {
-  ANALYST: "a043bae1603803a839c0cb52f511d9cb8f68d9d9b0341314",
-  INVESTIGATOR: "a5534ea92b26fa8adc30543fe5a6e743849e63f8101ac616",
-  FINANCE_OPERATOR: "f8fd0ba84a167fe482ed4a92c8c8050eed40ef171cc2784d",
-  APPROVER: "638b34fa781359331a3ed13a32e97cc31667baf165d33764",
-  ADMINISTRATOR: DEMO_TOKEN,
-};
+export async function getDemoToken(role = "ADMINISTRATOR"): Promise<string> {
+  if (DEMO_TOKENS[role]) return DEMO_TOKENS[role];
+  const res = await fetch(`${BASE}/demo/session?role=${encodeURIComponent(role)}`, { method: "POST" });
+  if (!res.ok) throw new Error("Demo session could not be established");
+  const data = await res.json();
+  DEMO_TOKENS[role] = data.token;
+  if (role === "ADMINISTRATOR") DEMO_TOKEN = data.token;
+  return data.token;
+}
 
 let getAccessToken: (() => Promise<string>) | null = null;
 export function setAccessTokenProvider(provider: () => Promise<string>) {
@@ -120,7 +120,7 @@ export const api = {
     form.append("source_label", sourceLabel);
     const res = await fetch(`${BASE}/evidence/upload`, {
       method: "POST", body: form,
-      headers: { "Authorization": `Bearer ${getAccessToken ? await getAccessToken() : DEMO_TOKEN}` },
+      headers: { "Authorization": `Bearer ${getAccessToken ? await getAccessToken() : await getDemoToken("ADMINISTRATOR")}` },
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();
@@ -130,7 +130,7 @@ export const api = {
     form.append("artifact_id", artifactId);
     const res = await fetch(`${BASE}/evidence/analyze`, {
       method: "POST", body: form,
-      headers: { "Authorization": `Bearer ${getAccessToken ? await getAccessToken() : DEMO_TOKEN}` },
+      headers: { "Authorization": `Bearer ${getAccessToken ? await getAccessToken() : await getDemoToken("ADMINISTRATOR")}` },
     });
     if (!res.ok) throw new Error(await res.text());
     return res.json();
@@ -143,11 +143,8 @@ export const api = {
     }),
   resetDemo: async () => {
     const result = await request<any>(`/demo/reset`, { method: "POST" });
-    const resetToken = result?.tokens_by_tenant?.TEN_NORTHBRIDGE?.ADMINISTRATOR;
-    if (resetToken) {
-      DEMO_TOKEN = resetToken;
-      DEMO_TOKENS.ADMINISTRATOR = resetToken;
-    }
+    DEMO_TOKEN = "";
+    delete DEMO_TOKENS.ADMINISTRATOR;
     return result;
   },
 
