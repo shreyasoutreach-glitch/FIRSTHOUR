@@ -25,21 +25,6 @@ def demo_session(role: str = "ADMINISTRATOR", db: Session = Depends(get_system_d
     if not token:
         raise HTTPException(503, "Demo identity is unavailable. Reset the demo dataset.")
     return {"mode": "DEMO", "role": role, "tenant_id": "TEN_NORTHBRIDGE", "token": token, "simulated": True}
-
-@router.post("/demo/session")
-def demo_session(role: str = "ADMINISTRATOR", db: Session = Depends(get_system_db)):
-    """Issue a demo credential dynamically instead of shipping it in the JS bundle."""
-    if not settings.demo_mode:
-        raise HTTPException(404, "Demo sessions are disabled")
-    allowed = {"ANALYST", "FINANCE_OPERATOR", "INVESTIGATOR", "APPROVER", "ADMINISTRATOR"}
-    role = role.upper()
-    if role not in allowed:
-        raise HTTPException(400, "Unsupported demo role")
-    user = db.query(User).filter(User.tenant_id == "TEN_NORTHBRIDGE", User.role == role).first()
-    token = user.api_token if user is not None else (settings.demo_master_token if role == "ADMINISTRATOR" else "")
-    if not token:
-        raise HTTPException(503, "Demo identity is unavailable. Reset the demo dataset.")
-    return {"mode": "DEMO", "role": role, "tenant_id": "TEN_NORTHBRIDGE", "token": token, "simulated": True}
 settings = get_settings()
 
 # These endpoints are destructive (reset wipes and reseeds the ENTIRE
