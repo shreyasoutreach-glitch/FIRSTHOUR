@@ -1,6 +1,6 @@
 ﻿import React, { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, DEMO_TOKENS } from "../lib/api";
+import { api, getDemoToken } from "../lib/api";
 import { useCase } from "../lib/CaseContext";
 import { useApiData } from "../lib/useApiData";
 import ErrorBanner from "../components/ErrorBanner";
@@ -89,21 +89,21 @@ export default function RecoveryCommand() {
     }
   }, [reload]);
 
-  const propose = () => runAction(() => api.proposeRecoveryCommand(incidentId, {
+  const propose = () => runAction(async () => api.proposeRecoveryCommand(incidentId, {
     action: target!.action,
     target_id: target!.event.source_reference,
     amount: target!.event.amount,
     reason: `${why?.anomalousPayouts} anomalous payout(s) totaling ${formatINR(data!.incident.headline.total_exposed)}; `
           + `Incident Evidence Score ${data!.incident.incident_evidence_score}/100.`,
     supporting_evidence: [],
-  }, DEMO_TOKENS[actingRole]));
+  }, await getDemoToken(actingRole)));
 
-  const review = () => runAction(() => api.reviewCommand(command.id, DEMO_TOKENS[actingRole]));
-  const approve = () => runAction(() => api.approveCommand(command.id, DEMO_TOKENS[actingRole]));
-  const reject = () => runAction(() => api.rejectCommand(command.id, DEMO_TOKENS[actingRole], "Rejected during review"));
-  const dryRun = () => runAction(() => api.dryRunCommand(command.id, DEMO_TOKENS[actingRole]));
-  const execute = () => runAction(() => api.executeCommand(command.id, DEMO_TOKENS[actingRole]));
-  const verify = () => runAction(() => api.verifyCommand(command.id, DEMO_TOKENS[actingRole]));
+  const review = () => runAction(async () => api.reviewCommand(command.id, await getDemoToken(actingRole)));
+  const approve = () => runAction(async () => api.approveCommand(command.id, await getDemoToken(actingRole)));
+  const reject = () => runAction(async () => api.rejectCommand(command.id, await getDemoToken(actingRole), "Rejected during review"));
+  const dryRun = () => runAction(async () => api.dryRunCommand(command.id, await getDemoToken(actingRole)));
+  const execute = () => runAction(async () => api.executeCommand(command.id, await getDemoToken(actingRole)));
+  const verify = () => runAction(async () => api.verifyCommand(command.id, await getDemoToken(actingRole)));
 
   const stepIndex = command ? LIFECYCLE.indexOf(command.state) : -1;
 
@@ -282,7 +282,7 @@ function ConvergencePanel({ commandId }: { commandId: string }) {
       )}
       <ul className="text-text_primary/55 mt-2 space-y-1">
         {data.checks.map((c: any) => (
-          <li key={c.check}>{c.passed ? "âœ“" : "âœ—"} {c.check.replace(/_/g, " ")}</li>
+          <li key={c.check}>{c.passed ? "✓" : "✕"} {c.check.replace(/_/g, " ")}</li>
         ))}
       </ul>
     </div>
