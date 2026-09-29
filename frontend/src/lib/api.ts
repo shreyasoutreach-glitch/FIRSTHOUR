@@ -1,24 +1,9 @@
-/**
- * Thin fetch wrapper over the Primhora API. Every function here maps to
- * exactly one backend endpoint -- no client-side re-derivation of financial
- * facts happens anywhere in this file or in the components that call it.
+/** Primhora API client.
  *
- * BASE resolves to, in order: an explicit VITE_API_BASE_URL (set this if the
- * frontend and backend are served from different origins in production),
- * otherwise the relative path "/api" -- which both the Vite dev server
- * (see vite.config.ts's proxy) and the docker-compose nginx config forward
- * to the backend. No absolute localhost/127.0.0.1 URL is ever hardcoded here.
- *
- * AUTH: the backend now requires a bearer token (see backend/app/core/authz.py).
- * There is no login screen yet -- this demo build ships with the
- * deterministic Administrator token for the default seed (SEED=42),
- * overridable via VITE_DEMO_API_TOKEN. This is explicitly NOT how a real
- * deployment would authenticate (see LIMITATIONS.md) -- it exists so the
- * existing screens keep working without a login flow this pass didn't have
- * time to build. The Recovery Command screen additionally uses requestAs()
- * with the per-role DEMO_TOKENS below, so it can demonstrate real
- * separation-of-duties instead of one admin token clicking through
- * everything.
+ * Demo authentication is issued dynamically by the backend at /demo/session.
+ * No static bearer credentials are embedded in the frontend bundle.
+ * Production authentication remains an OIDC/JWT integration and must replace
+ * the demo session mechanism before real customer data is enabled.
  */
 const BASE = import.meta.env.VITE_API_BASE_URL || "/api";
 
