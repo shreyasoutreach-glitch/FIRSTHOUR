@@ -1,40 +1,19 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Activity, AlertTriangle, ArrowUpRight, Database, FileCheck2, ShieldCheck, Users, WalletCards } from "lucide-react";
-import { api } from "../lib/api";
-import { formatINR } from "../lib/format";
-
-function Stat({label,value,sub,icon:Icon}:any){return <div className="rounded-2xl border border-surface_border bg-surface p-5"><div className="flex items-center justify-between"><span className="label-eyebrow text-text_primary/35">{label}</span><Icon size={16} className="text-text_primary/35"/></div><p className="font-display text-3xl mt-5">{value}</p><p className="text-xs text-text_primary/40 mt-1">{sub}</p></div>}
+import React from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Database, Users, ShieldCheck, Plus, Building2 } from "lucide-react";
 
 export default function SaaS(){
- const [metrics,setMetrics]=useState<any>(null); const [incidents,setIncidents]=useState<any[]>([]); const [error,setError]=useState("");
- const navigate=useNavigate();
- useEffect(()=>{Promise.all([api.getMetrics(),api.listIncidents()]).then(([m,i])=>{setMetrics(m);setIncidents(i)}).catch(e=>setError(e.message||String(e)))},[]);
- const open=incidents.filter(i=>!["RESOLVED","CLOSED"].includes(i.resolution_state||"")).length;
- return <div className="min-h-[calc(100vh-56px)] bg-graphite text-text_primary">
-  <div className="max-w-canvas mx-auto px-6 sm:px-10 py-8">
-   <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 mb-8">
-    <div><p className="label-eyebrow text-text_primary/35 mb-3">Workspace · Northbridge</p><h1 className="font-display text-4xl tracking-tight">Financial operations</h1><p className="text-sm text-text_primary/50 mt-2">A working control plane for incidents, evidence and recovery.</p></div>
-    <div className="flex items-center gap-2 text-xs"><span className="rounded-full border border-emerald/30 text-emerald px-3 py-1.5">WORKSPACE ACTIVE</span><span className="rounded-full border border-amber/25 text-amber px-3 py-1.5">BUYER PREVIEW</span></div>
-   </div>
-   {error && <div className="mb-6 rounded-xl border border-vermillion/30 bg-vermillion/5 p-4 text-sm text-vermillion">{error}</div>}
-   <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-    <Stat label="Open incidents" value={open} sub="requiring attention" icon={AlertTriangle}/>
-    <Stat label="Transactions" value={metrics?.payouts?.toLocaleString() ?? "—"} sub="payout records" icon={Activity}/>
-    <Stat label="Evidence" value={metrics?.evidence_artifacts ?? "—"} sub="artifacts retained" icon={FileCheck2}/>
-    <Stat label="Audit events" value={metrics?.audit_events ?? "—"} sub="accountable actions" icon={ShieldCheck}/>
-   </div>
-   <div className="grid lg:grid-cols-[1fr_340px] gap-5">
-    <section className="rounded-2xl border border-surface_border bg-surface">
-     <div className="p-5 border-b border-surface_border flex items-center justify-between"><div><p className="label-eyebrow text-text_primary/35">Incident queue</p><h2 className="font-display text-xl mt-1">Cases requiring attention</h2></div><Link to="/app/incidents" className="text-xs text-text_primary/50 hover:text-text_primary">View all →</Link></div>
-     {incidents.length===0 ? <div className="p-8 text-sm text-text_primary/40">No incidents in this workspace.</div> : <div>{incidents.slice(0,6).map((i:any)=><button key={i.id} onClick={()=>navigate("/app/incidents/"+i.id)} className="w-full text-left p-5 border-b last:border-b-0 border-surface_border hover:bg-surface_raised transition"><div className="flex items-start justify-between gap-4"><div><div className="flex items-center gap-2"><span className="font-ui text-xs text-text_primary/40">{i.id}</span><span className="text-[10px] rounded-full border border-vermillion/30 text-vermillion px-2 py-0.5">{i.severity||"OPEN"}</span></div><p className="mt-2 font-medium">{i.scenario||"Financial anomaly investigation"}</p><p className="text-xs text-text_primary/40 mt-1">{i.state}</p></div><ArrowUpRight size={16} className="text-text_primary/30"/></div></button>)}</div>}
-    </section>
-    <aside className="space-y-3">
-      <Link to="/app/data-sources" className="block rounded-2xl border border-surface_border bg-surface p-5 hover:bg-surface_raised transition"><div className="flex justify-between"><Database size={18}/><ArrowUpRight size={15}/></div><p className="font-display text-lg mt-8">Data sources</p><p className="text-xs text-text_primary/45 mt-1">Connect or import financial records.</p></Link>
-      <Link to="/app/team" className="block rounded-2xl border border-surface_border bg-surface p-5 hover:bg-surface_raised transition"><div className="flex justify-between"><Users size={18}/><ArrowUpRight size={15}/></div><p className="font-display text-lg mt-8">Team & controls</p><p className="text-xs text-text_primary/45 mt-1">Roles, approvals and separation of duties.</p></Link>
-      <div className="rounded-2xl border border-surface_border bg-surface p-5"><WalletCards size={18}/><p className="font-display text-lg mt-8">Recovery operations</p><p className="text-xs text-text_primary/45 mt-1">Governed actions stay inside the case record.</p></div>
-    </aside>
-   </div>
+ return <div className="min-h-[calc(100vh-64px)] bg-graphite text-text_primary"><div className="max-w-canvas mx-auto px-6 sm:px-10 py-10">
+  <div className="max-w-3xl"><p className="label-eyebrow text-text_primary/35 mb-3">WORKSPACE · FIRST RUN</p><h1 className="font-display text-5xl tracking-tight">Your financial operations workspace.</h1><p className="text-base leading-relaxed text-text_primary/50 mt-4 max-w-2xl">This is your control plane, not a pre-filled demo. Set up your organization and connect authorized financial data before Primhora begins creating incidents.</p></div>
+  <div className="mt-10 grid lg:grid-cols-[1.25fr_.75fr] gap-5">
+   <section className="rounded-2xl border border-surface_border bg-surface p-7"><div className="flex items-start justify-between gap-6"><div><p className="label-eyebrow text-text_primary/35">GET STARTED</p><h2 className="font-display text-2xl mt-2">Build your workspace</h2></div><span className="rounded-full border border-amber/25 text-amber px-3 py-1.5 text-[10px] uppercase tracking-wider">Not connected</span></div>
+    <div className="mt-8 space-y-3">{[["01","Set up your organization","Company identity, operating context and workspace ownership."],["02","Connect your data","Authorized payment, bank, ledger or file sources."],["03","Invite your team","Assign analyst, investigator and approver responsibilities."],["04","Start monitoring","Incidents appear only when your connected data creates them."]].map(([n,t,c],i)=><div key={n} className="flex gap-4 rounded-xl border border-surface_border p-4"><span className="font-ui text-xs text-text_primary/30 pt-1">{n}</span><div><p className="font-medium">{t}</p><p className="text-xs text-text_primary/40 mt-1">{c}</p></div>{i===0&&<span className="ml-auto text-xs text-text_primary/35">Start here</span>}</div>)}</div>
+    <button className="mt-7 inline-flex items-center gap-2 rounded-xl bg-text_primary text-graphite px-5 py-3 text-sm font-medium"><Plus size={15}/> Create organization <ArrowRight size={14}/></button>
+   </section>
+   <aside className="space-y-3"><div className="rounded-2xl border border-surface_border bg-surface p-6"><Building2 size={18}/><p className="font-display text-xl mt-7">No organization yet</p><p className="text-xs leading-relaxed text-text_primary/45 mt-2">A new Primhora workspace starts empty. There are no clients, incidents or financial records here until you add them.</p></div>
+    <Link to="/demo/setup" className="block rounded-2xl border border-amber/20 bg-amber/[0.04] p-6 hover:bg-amber/[0.07] transition"><ShieldCheck size={18} className="text-amber"/><p className="font-display text-xl mt-7">Want to see it working?</p><p className="text-xs leading-relaxed text-text_primary/45 mt-2">Open the synthetic demo and investigate a complete incident without connecting anything.</p><span className="inline-flex items-center gap-2 text-xs mt-5">Explore demo <ArrowRight size={13}/></span></Link>
+   </aside>
   </div>
- </div>
+  <div className="mt-8 grid md:grid-cols-3 gap-3"><Link to="/app/data-sources" className="rounded-2xl border border-surface_border bg-surface p-5 hover:bg-surface_raised transition"><Database size={17}/><p className="font-display text-lg mt-7">Data sources</p><p className="text-xs text-text_primary/40 mt-1">Connect or import authorized records.</p></Link><Link to="/app/team" className="rounded-2xl border border-surface_border bg-surface p-5 hover:bg-surface_raised transition"><Users size={17}/><p className="font-display text-lg mt-7">Team & controls</p><p className="text-xs text-text_primary/40 mt-1">Prepare roles and approvals.</p></Link><div className="rounded-2xl border border-surface_border bg-surface p-5"><ShieldCheck size={17}/><p className="font-display text-lg mt-7">Governed recovery</p><p className="text-xs text-text_primary/40 mt-1">Recovery actions remain reviewable and auditable.</p></div></div>
+ </div></div>;
 }
