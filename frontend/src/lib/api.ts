@@ -7,10 +7,7 @@
  */
 const BASE = import.meta.env.VITE_API_BASE_URL || "/api";
 
-// Deterministic demo token for TEN_NORTHBRIDGE's ADMINISTRATOR user at the
-// default SEED=42 -- printed by `python -m seed.seed` and returned by
-// POST /demo/reset. Change SEED and this will stop matching; use
-// VITE_DEMO_API_TOKEN to override.
+// Demo credentials are issued by the backend at runtime and are never bundled.
 let DEMO_TOKEN = "";
 const DEMO_TOKENS: Record<string, string> = {};
 
@@ -44,6 +41,9 @@ export class APIError extends Error {
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  // In production the configured OIDC provider owns authentication. Do not
+  // touch the demo-session endpoint when an access-token provider exists.
+  if (getAccessToken) return requestAs<T>("", path, options);
   const token = await getDemoToken("ADMINISTRATOR");
   return requestAs<T>(token, path, options);
 }
