@@ -59,7 +59,8 @@ export class APIError extends Error {
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  return requestAs<T>(DEMO_TOKEN, path, options);
+  const token = await getDemoToken("ADMINISTRATOR");
+  return requestAs<T>(token, path, options);
 }
 
 async function requestAs<T>(token: string, path: string, options?: RequestInit): Promise<T> {
