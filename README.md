@@ -53,11 +53,14 @@ Non-goals: money movement, autonomous fraud decisions, bank-account control, pro
 - DB-backed API evaluation: **60 labeled regression cases** through the payout CSV API path, with clean/suspicious cases plus malformed-input and replay checks.
 - Render backend: **LIVE** on the merged main commit.
 - Render frontend: **LIVE** on the merged main commit.
+- Workspace creation: **backend-persisted in the demo environment**, with a tenant and owner token created by the API rather than browser-only state.
+- Render frontend API origin: **configured** to call the Render backend directly.
+- API hardening: security headers added; metrics/evaluation endpoints require VIEW permission; evidence upload validates merchant/incident ownership.
 - Fresh deployed-browser verification: **not yet completed**, so live UI behavior should not be described as browser-verified.
 - Production identity-provider activation: **credential-dependent**, not represented as complete.
 - Live payment/bank provider adapters beyond the generic CSV path: **not represented as complete**.
 
-The repository is therefore in a substantially verified capstone/product state, but it is **not yet represented as fully production-ready for external customer data**.
+The repository is therefore in a substantially verified capstone/product state, but it is **not yet represented as fully production-ready for external customer data**. The detailed gap register is in `PRODUCTION_DISCREPANCIES.md`.
 
 ## Evaluation
 
@@ -92,6 +95,7 @@ The suite is a visible regression suite, not a hidden benchmark and not a substi
 - Phase 3 capstone repositioning: **complete**.
 - Phase 4 real ingestion, read-only enforcement, PDF export, Docker verification and CI: **substantially complete**, with production identity/provider onboarding still credential-dependent.
 - Phase 5 selected-segment UX and vendor-bank-change scenario: **implemented**; deployed-browser verification remains.
+- Production hardening pass: **implemented for the current application-level gaps identified in `PRODUCTION_DISCREPANCIES.md`**; infrastructure/customer-data gates remain.
 - Phase 6 executable evaluation: **complete for the current 60-case DB-backed API regression suite**; broader incident-type and hidden-evaluation coverage remains.
 
 ## What PRIMHORA does not claim
@@ -105,5 +109,6 @@ PRIMHORA does not currently claim:
 - real-world fraud-detection precision/recall;
 - product-market fit;
 - browser-verified production UX.
+- durable production evidence storage or a completed customer-data retention/backup policy.
 
 That boundary is deliberate. The goal is a defensible capstone and a credible foundation for a real product, not a demo wearing a production costume.
