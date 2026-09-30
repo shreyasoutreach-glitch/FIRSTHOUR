@@ -77,17 +77,17 @@ def auth(token: str) -> dict:
 
 def test_requires_authentication(client):
     """No Authorization header at all -> 401, not a silent unscoped fetch."""
-    resp = client["client"].get("/incident/INC_API_TEST")
+    resp = client["client"].get("/api/incident/INC_API_TEST")
     assert resp.status_code == 401
 
 
 def test_rejects_invalid_token(client):
-    resp = client["client"].get("/incident/INC_API_TEST", headers=auth("not-a-real-token"))
+    resp = client["client"].get("/api/incident/INC_API_TEST", headers=auth("not-a-real-token"))
     assert resp.status_code == 401
 
 
 def test_get_incident_returns_headline(client):
-    resp = client["client"].get("/incident/INC_API_TEST", headers=auth(client["tokens"]["ANALYST"]))
+    resp = client["client"].get("/api/incident/INC_API_TEST", headers=auth(client["tokens"]["ANALYST"]))
     assert resp.status_code == 200
     body = resp.json()
     assert body["id"] == "INC_API_TEST"
@@ -96,12 +96,12 @@ def test_get_incident_returns_headline(client):
 
 
 def test_get_incident_404_for_unknown(client):
-    resp = client["client"].get("/incident/NOPE", headers=auth(client["tokens"]["ANALYST"]))
+    resp = client["client"].get("/api/incident/NOPE", headers=auth(client["tokens"]["ANALYST"]))
     assert resp.status_code == 404
 
 
 def test_timeline_endpoint_sorted_chronologically(client):
-    resp = client["client"].get("/incident/INC_API_TEST/timeline", headers=auth(client["tokens"]["ANALYST"]))
+    resp = client["client"].get("/api/incident/INC_API_TEST/timeline", headers=auth(client["tokens"]["ANALYST"]))
     assert resp.status_code == 200
     events = resp.json()
     timestamps = [e["timestamp"] for e in events]
@@ -109,27 +109,27 @@ def test_timeline_endpoint_sorted_chronologically(client):
 
 
 def test_exposure_endpoint(client):
-    resp = client["client"].get("/incident/INC_API_TEST/exposure", headers=auth(client["tokens"]["ANALYST"]))
+    resp = client["client"].get("/api/incident/INC_API_TEST/exposure", headers=auth(client["tokens"]["ANALYST"]))
     assert resp.status_code == 200
     body = resp.json()
     assert float(body["confirmed_moved"]["total"]) == 5_000_000
 
 
 def test_graph_endpoint(client):
-    resp = client["client"].get("/incident/INC_API_TEST/graph", headers=auth(client["tokens"]["ANALYST"]))
+    resp = client["client"].get("/api/incident/INC_API_TEST/graph", headers=auth(client["tokens"]["ANALYST"]))
     assert resp.status_code == 200
     body = resp.json()
     assert len(body["nodes"]) > 0
 
 
 def test_next_question_then_attestation_changes_state(client):
-    resp = client["client"].get("/incident/INC_API_TEST/questions/next", headers=auth(client["tokens"]["ANALYST"]))
+    resp = client["client"].get("/api/incident/INC_API_TEST/questions/next", headers=auth(client["tokens"]["ANALYST"]))
     assert resp.status_code == 200
     question = resp.json()
     assert question["question_id"] == "q_authorized_payouts"
 
     resp2 = client["client"].post(
-        "/incident/INC_API_TEST/attestation",
+        "/api/incident/INC_API_TEST/attestation",
         json={"question_id": "q_authorized_payouts", "answer": "NO", "note": "not me"},
         headers=auth(client["tokens"]["INVESTIGATOR"]),
     )
@@ -144,7 +144,7 @@ def test_attestation_requires_investigate_permission(client):
     this is the exact "viewer shouldn't be able to act" property RBAC is
     for."""
     resp = client["client"].post(
-        "/incident/INC_API_TEST/attestation",
+        "/api/incident/INC_API_TEST/attestation",
         json={"question_id": "q_authorized_payouts", "answer": "NO"},
         headers=auth(client["tokens"]["ANALYST"]),
     )
@@ -153,7 +153,7 @@ def test_attestation_requires_investigate_permission(client):
 
 def test_attestation_rejects_unknown_question(client):
     resp = client["client"].post(
-        "/incident/INC_API_TEST/attestation",
+        "/api/incident/INC_API_TEST/attestation",
         json={"question_id": "q_not_real", "answer": "YES"},
         headers=auth(client["tokens"]["INVESTIGATOR"]),
     )
@@ -161,20 +161,55 @@ def test_attestation_rejects_unknown_question(client):
 
 
 def test_recovery_packet_has_source_references(client):
-    resp = client["client"].get("/incident/INC_API_TEST/recovery-packet", headers=auth(client["tokens"]["ANALYST"]))
+    resp = client["client"].get("/api/incident/INC_API_TEST/recovery-packet", headers=auth(client["tokens"]["ANALYST"]))
     assert resp.status_code == 200
     packet = resp.json()
     assert packet["case_id"] == "INC_API_TEST"
     assert packet["transaction_table"][0]["source_reference"]
 
 
+def test_generic_csv_import_creates_read_only_case(client):
+    csv = b"transaction_id,timestamp,amount,currency,status,beneficiary_name,account_number,ifsc\nCSV-001,2026-09-30T10:00:00+00:00,5000000,INR,processed,New Vendor,XXXX7788,ABCD0001234\n"
+    resp = client["client"].post(
+        "/api/import/payouts-csv",
+        files={"file": ("payouts.csv", csv, "text/csv")},
+        data={"merchant_name": "Customer CSV Co", "source_system": "bank_csv"},
+        headers=auth(client["tokens"]["INVESTIGATOR"]),
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["imported_rows"] == 1
+    assert body["read_only"] is True
+    assert body["incident_count"] >= 0
+    assert len(body["imported_payout_ids"]) == 1
+
+
+def test_recovery_execute_route_is_read_only(client):
+    resp = client["client"].post(
+        "/api/recovery-commands/RC_DOES_NOT_MATTER/execute",
+        headers=auth(client["tokens"]["ADMINISTRATOR"]),
+    )
+    assert resp.status_code == 409
+    assert "read-only" in resp.json()["detail"].lower()
+
+
+def test_recovery_packet_pdf_exports(client):
+    pdf = client["client"].get(
+        "/api/incident/INC_API_TEST/recovery-packet.pdf",
+        headers=auth(client["tokens"]["ANALYST"]),
+    )
+    assert pdf.status_code == 200
+    assert pdf.headers["content-type"].startswith("application/pdf")
+    assert pdf.content.startswith(b"%PDF")
+
+
 def test_demo_reset_requires_administrator(client):
-    resp = client["client"].post("/demo/reset", headers=auth(client["tokens"]["INVESTIGATOR"]))
+    resp = client["client"].post("/api/demo/reset", headers=auth(client["tokens"]["INVESTIGATOR"]))
     assert resp.status_code == 403
 
 
 def test_demo_reset_reseeds_flagship_incident(client):
-    resp = client["client"].post("/demo/reset", headers=auth(client["tokens"]["ADMINISTRATOR"]))
+    resp = client["client"].post("/api/demo/reset", headers=auth(client["tokens"]["ADMINISTRATOR"]))
     assert resp.status_code == 200
     body = resp.json()
     assert body["flagship_incident_id"] == "INC-001"
@@ -186,18 +221,18 @@ def test_demo_reset_reseeds_flagship_incident(client):
     new_admin_token = body["tokens_by_tenant"]["TEN_NORTHBRIDGE"]["ADMINISTRATOR"]
     new_viewer_token = body["tokens_by_tenant"]["TEN_NORTHBRIDGE"]["ANALYST"]
 
-    resp2 = client["client"].get("/incident/INC-001", headers=auth(new_viewer_token))
+    resp2 = client["client"].get("/api/incident/INC-001", headers=auth(new_viewer_token))
     assert resp2.status_code == 200
     assert resp2.json()["headline"]["payout_count"] == 3
 
 
 def test_demo_inject_incident_scenario(client):
     # MER_HARBOR (the dedicated Chaos Lab merchant) only exists after a seed/reset.
-    reset_resp = client["client"].post("/demo/reset", headers=auth(client["tokens"]["ADMINISTRATOR"]))
+    reset_resp = client["client"].post("/api/demo/reset", headers=auth(client["tokens"]["ADMINISTRATOR"]))
     admin_token = reset_resp.json()["tokens_by_tenant"]["TEN_NORTHBRIDGE"]["ADMINISTRATOR"]
 
     resp = client["client"].post(
-        "/demo/inject-incident",
+        "/api/demo/inject-incident",
         json={"scenario": "new_beneficiary_burst", "merchant_id": "MER_HARBOR"},
         headers=auth(admin_token),
     )

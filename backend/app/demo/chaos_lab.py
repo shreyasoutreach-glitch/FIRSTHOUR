@@ -141,6 +141,52 @@ def inject_scenario(db: Session, scenario: str, merchant_id: str = CHAOS_MERCHAN
         audit_trail = ["FINANCIAL_EVENT_CREATED", "BASELINE_DEVIATION", "INCIDENT_DETECTED",
                        "GRAPH_UPDATED", "EVIDENCE_CORRELATED", "HUMAN_CONTEXT_REQUIRED"]
 
+    elif scenario == "vendor_bank_change":
+        contact = _new_contact_and_fund_account(db, merchant_id, "Acme Components Ltd", now - dt.timedelta(days=90))
+        old_fund = db.query(m.FundAccount).filter(m.FundAccount.contact_id == contact.id).first()
+        new_fund = m.FundAccount(
+            id=f"FA_{uuid.uuid4().hex[:8]}",
+            contact_id=contact.id,
+            account_type="bank_account",
+            masked_bank_account="XXXX7788",
+            masked_ifsc="ABCD0004321",
+            created_at=now - dt.timedelta(minutes=4),
+        )
+        db.add(new_fund)
+        db.flush()
+        payout = m.Payout(
+            id=f"PYO_{uuid.uuid4().hex[:8]}",
+            merchant_id=merchant_id,
+            contact_id=contact.id,
+            fund_account_id=new_fund.id,
+            amount=12_75_000,
+            purpose="vendor_bill",
+            mode="IMPS",
+            narration="Vendor settlement after bank-detail change",
+            reference_id=uuid.uuid4().hex[:10],
+            status="processed",
+            created_at=now,
+            is_injected=True,
+        )
+        db.add(payout)
+        db.flush()
+        artifact = _ensure_artifact(
+            db, merchant_id, incident_id, "vendor_bank_change_email.txt",
+            "From: accounts@acme-components.example\n"
+            "Subject: Updated bank details for today's vendor settlement\n\n"
+            "Please use our new bank account for today's payment. The previous account is no longer active. "
+            "Please do not delay the settlement while waiting for a phone confirmation."
+        )
+        _add_communication(
+            db, artifact.id, incident_id, "accounts@acme-components.example",
+            artifact.raw_text, 12_75_000, "Acme Components Ltd", now - dt.timedelta(minutes=7),
+            f"FEV_PYO_{payout.id}", contact.id, "CORROBORATED"
+        )
+        payout_ids = [payout.id]
+        audit_trail = ["FINANCIAL_EVENT_CREATED", "BENEFICIARY_ACCOUNT_CHANGED",
+                       "INCIDENT_DETECTED", "GRAPH_UPDATED", "EVIDENCE_CORRELATED",
+                       "HUMAN_CONTEXT_REQUIRED"]
+
     elif scenario == "duplicate_payout":
         recent_contact = (
             db.query(m.Contact).filter(m.Contact.merchant_id == merchant_id)

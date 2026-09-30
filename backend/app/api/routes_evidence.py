@@ -67,7 +67,9 @@ async def upload_evidence(
     db: Session = Depends(get_tenant_db),
     _user: m.User = Depends(require_permission("INVESTIGATE")),
 ):
-    data = await file.read()
+    data = await file.read(settings.max_evidence_bytes + 1)
+    if len(data) > settings.max_evidence_bytes:
+        raise HTTPException(413, f"Evidence file exceeds the {settings.max_evidence_bytes // (1024 * 1024)} MB limit")
     mime_type = file.content_type or "application/octet-stream"
     if not validate_mime(mime_type):
         raise HTTPException(400, f"Unsupported MIME type: {mime_type}")
@@ -157,6 +159,12 @@ def analyze_evidence(
             raise HTTPException(502, f"Vision extraction failed: {exc}") from exc
     else:
         candidates = extract_candidate_claims(artifact.raw_text, artifact.id)
+
+    # Re-analysis is idempotent: replace prior candidate claims for this artifact
+    # instead of silently duplicating them.
+    db.query(m.ExtractedClaim).filter(
+        m.ExtractedClaim.source_artifact_id == artifact.id
+    ).delete(synchronize_session=False)
 
     financial_events = (
         db.query(m.FinancialEvent)

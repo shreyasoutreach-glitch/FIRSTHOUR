@@ -34,7 +34,7 @@ def _run_full_lifecycle(db):
     )
     rc.review_command(db, command, "USR_2")
     rc.approve_command(db, command, "USR_3")
-    rc.execute_command(db, command, "USR_4")
+    rc.prepare_packet_command(db, command, "USR_4")
     return command
 
 
@@ -59,12 +59,12 @@ def test_convergence_is_replay_consistent(db_session):
 
 def test_target_changing_after_execution_causes_divergence(db_session):
     """If a Chaos-Lab-style mutation changes the target payout's status
-    after the recovery command executed, convergence must detect that the
+    after the evidence packet was prepared, convergence must detect that the
     world no longer matches what was simulated -- this is the check
     actually catching something."""
     payout = _seed_payout(db_session, status="queued")
     command = _run_full_lifecycle(db_session)
-    assert command.execution_result["after"]["status"] == "frozen"
+    assert command.dry_run_result["after"]["status"] == "frozen"
 
     # Something else moved the payout to "processed" after the fact.
     payout.status = "processed"

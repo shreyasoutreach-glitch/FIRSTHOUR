@@ -25,6 +25,9 @@ let getAccessToken: (() => Promise<string>) | null = null;
 export function setAccessTokenProvider(provider: () => Promise<string>) {
   getAccessToken = provider;
 }
+export function hasAccessTokenProvider() {
+  return Boolean(getAccessToken);
+}
 
 export class APIError extends Error {
   constructor(public status: number, public data: any) {
@@ -95,6 +98,12 @@ export const api = {
   postAttestation: (incidentId: string, body: { question_id: string; answer: string; note?: string }) =>
     request<any>(`/incident/${incidentId}/attestation`, { method: "POST", body: JSON.stringify(body) }),
   getRecoveryPacket: (incidentId: string) => request<any>(`/incident/${incidentId}/recovery-packet`),
+  downloadRecoveryPacketPdf: async (incidentId: string) => {
+    const token = getAccessToken ? await getAccessToken() : await getDemoToken("ADMINISTRATOR");
+    const res = await fetch(`${BASE}/incident/${incidentId}/recovery-packet.pdf`, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) throw new APIError(res.status, { detail: await res.text() });
+    return res.blob();
+  },
   getAudit: (incidentId: string) => request<any[]>(`/incident/${incidentId}/audit`),
 
   uploadEvidence: async (file: File, merchantId: string, incidentId: string, sourceLabel: string) => {
@@ -156,12 +165,21 @@ export const api = {
     requestAs<any>(actingToken, `/recovery-commands/${commandId}/reject`, {
       method: "POST", body: JSON.stringify({ reason }),
     }),
-  executeCommand: (commandId: string, actingToken: string) =>
-    requestAs<any>(actingToken, `/recovery-commands/${commandId}/execute`, { method: "POST" }),
+  preparePacket: (commandId: string, actingToken: string) =>
+    requestAs<any>(actingToken, `/recovery-commands/${commandId}/prepare-packet`, { method: "POST" }),
   verifyCommand: (commandId: string, actingToken: string) =>
     requestAs<any>(actingToken, `/recovery-commands/${commandId}/verify`, { method: "POST" }),
   getConvergence: (commandId: string) =>
     request<any>(`/recovery-commands/${commandId}/convergence`),
+  importPayoutCsv: async (file: File, merchantName: string) => {
+    const token = getAccessToken ? await getAccessToken() : await getDemoToken("ADMINISTRATOR");
+    const form = new FormData();
+    form.append("file", file);
+    form.append("merchant_name", merchantName);
+    const res = await fetch(`${BASE}/import/payouts-csv`, { method: "POST", body: form, headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) { let data:any; try { data = await res.json(); } catch { data = {detail: res.statusText}; } throw new APIError(res.status, data); }
+    return res.json();
+  },
 };
 
 export const FLAGSHIP_MERCHANT_ID = "MER_ARROW";

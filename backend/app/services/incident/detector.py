@@ -32,7 +32,7 @@ from app.services.incident.scoring import (
 )
 
 
-def sync_financial_events_for_payouts(db: Session, payouts: list[m.Payout]) -> list[m.FinancialEvent]:
+def sync_financial_events_for_payouts(db: Session, payouts: list[m.Payout], source_system: str = "razorpay") -> list[m.FinancialEvent]:
     """Explicitly propagates tenant_id from each source payout rather than
     relying on the session's current tenant context -- this function is
     sometimes called with a batch of payouts spanning multiple tenants (the
@@ -47,7 +47,7 @@ def sync_financial_events_for_payouts(db: Session, payouts: list[m.Payout]) -> l
             id=f"FEV_PYO_{p.id}",
             tenant_id=p.tenant_id,
             event_type="payout",
-            source_system="razorpay",
+            source_system=source_system,
             source_record_id=p.id,
             merchant_id=p.merchant_id,
             counterparty_id=p.contact_id,

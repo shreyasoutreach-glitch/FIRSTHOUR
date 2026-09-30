@@ -35,8 +35,8 @@ def _prf1(tp: int, fp: int, fn: int) -> dict:
     return {"precision": round(precision, 3), "recall": round(recall, 3), "f1": round(f1, 3)}
 
 
-def evaluate_event_detection(threshold: float = 50.0, n_clean: int = 40, n_suspicious: int = 20,
-                              seed: int = 7) -> dict:
+def evaluate_event_detection(threshold: float = 50.0, n_clean: int = 200, n_suspicious: int = 100,
+                              seed: int = 20260930) -> dict:
     """Generates labeled synthetic payout scenarios against a fixed baseline
     (median 18,400, consistent with the flagship merchant) and checks
     whether the Incident Evidence Score correctly separates clean payouts
@@ -161,8 +161,15 @@ def run_full_evaluation() -> dict:
             "unsupported_claim_rate": 0.0,
         },
         "scope_note": (
-            "Scaled-down fixture-based harness for a buildathon build. Production scale-up: "
-            "50-100 hidden DB-backed labeled cases per the architecture doc, run against the live "
-            "API rather than the pure scoring functions directly."
+            "Synthetic fixture evaluation only. The production evaluation target is a larger hidden "
+            "DB-backed case set derived from the architecture, executed against the live API. These "
+            "numbers must not be presented as real-world fraud-detection accuracy."
         ),
+        "dataset": {
+            "id": "primhora-synthetic-eval-v2",
+            "population": 300,
+            "n_clean": 200,
+            "n_suspicious": 100,
+            "seed": 20260930,
+        },
     }

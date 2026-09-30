@@ -1,11 +1,15 @@
 import React, { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Database, UploadCloud, ShieldCheck, ArrowRight, FileCheck2, X } from "lucide-react";
+import { api, hasAccessTokenProvider } from "../lib/api";
 
 export default function SaaSDataSources(){
  const workspace=sessionStorage.getItem("primhora_workspace");
  const [file,setFile]=useState<File|null>(null);
  const [preview,setPreview]=useState<{rows:number,columns:string[]}|null>(null);
+ const [importing,setImporting]=useState(false);
+ const [importResult,setImportResult]=useState<any>(null);
+ const [importError,setImportError]=useState<string|null>(null);
  const inputRef=useRef<HTMLInputElement>(null);
 
  const inspect=(next:File|null)=>{
@@ -26,7 +30,7 @@ export default function SaaSDataSources(){
     <Source title="Payment provider" status="NOT CONNECTED" copy="No live provider credentials are configured. Primhora will only show CONNECTED after an authorized backend connection has been verified." icon={ShieldCheck}/>
     <div className="panel p-6"><div className="flex justify-between"><UploadCloud size={20}/><span className="status-pill border-amber/25 text-amber/70">FILE IMPORT</span></div><h2 className="font-display text-xl mt-8">Ledger import</h2><p className="text-sm leading-relaxed text-text_primary/50 mt-2">Validate a CSV locally before an authorized ingestion workflow is enabled. This preview never sends financial data anywhere.</p>
       <input ref={inputRef} type="file" accept=".csv,text/csv" className="hidden" onChange={e=>inspect(e.target.files?.[0]||null)}/>
-      <button onClick={()=>inputRef.current?.click()} className="mt-5 inline-flex items-center gap-2 rounded-lg border border-surface_border px-4 py-2.5 text-sm hover:bg-surface_raised">{file?<FileCheck2 size={15}/>:<UploadCloud size={15}/>} {file?"Inspect another CSV":"Inspect CSV"}</button>
+      <button onClick={()=>inputRef.current?.click()} className="mt-5 inline-flex items-center gap-2 rounded-lg border border-surface_border px-4 py-2.5 text-sm hover:bg-surface_raised">{file?<FileCheck2 size={15}/>:<UploadCloud size={15}/>} {file?"Inspect another CSV":"Inspect CSV"}</button>{file&&preview&&<button disabled={importing||!hasAccessTokenProvider()} onClick={async()=>{setImporting(true);setImportError(null);setImportResult(null);try{const result=await api.importPayoutCsv(file,workspace||"Workspace");setImportResult(result)}catch(e:any){setImportError(e.message||"Import failed")}finally{setImporting(false)}}} className="mt-3 ml-2 inline-flex items-center gap-2 rounded-lg bg-text_primary text-graphite px-4 py-2.5 text-sm disabled:opacity-40">{importing?"Importing...":"Import to authorized workspace"}</button>}
       {file&&<div className="mt-4 rounded-xl border border-surface_border bg-graphite/60 p-4"><div className="flex justify-between gap-4"><div><p className="text-sm">{file.name}</p><p className="text-[11px] text-text_primary/35 mt-1">{(file.size/1024).toFixed(1)} KB · preview only</p></div><button aria-label="Clear file" onClick={()=>{setFile(null);setPreview(null)}} className="text-text_primary/35 hover:text-text_primary"><X size={14}/></button></div>{preview?<><p className="text-xs text-text_primary/55 mt-4">{preview.rows.toLocaleString()} data rows detected.</p><div className="flex flex-wrap gap-1.5 mt-2">{preview.columns.slice(0,8).map(c=><span key={c} className="status-pill border-surface_border text-text_primary/45 normal-case tracking-normal">{c}</span>)}</div></>:<p className="text-xs text-amber/70 mt-3">CSV preview unavailable. The file has not been uploaded.</p>}</div>}
     </div>
    </div>

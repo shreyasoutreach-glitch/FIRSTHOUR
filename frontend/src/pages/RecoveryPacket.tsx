@@ -18,6 +18,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 export default function RecoveryPacket() {
+  const [pdfBusy, setPdfBusy] = React.useState(false);
+  const [pdfError, setPdfError] = React.useState<string | null>(null);
   const { incidentId } = useCase();
   const { data: packet, loading, error, reload } = useApiData(() => api.getRecoveryPacket(incidentId), [incidentId]);
 
@@ -41,7 +43,7 @@ export default function RecoveryPacket() {
           <span className="text-[13px] font-ui text-text_primary/50">Case {packet.case_id}</span>
         </div>
         <p className="text-[13px] text-text_primary/50 mb-10">
-          Generated for internal use, your bank and Razorpay &mdash; every figure below traces to a source.
+          Generated from source-backed case records. PRIMHORA is read-only and does not execute recovery.
         </p>
 
         <Section title="Incident Summary">
@@ -153,7 +155,7 @@ export default function RecoveryPacket() {
         </section>
       </div>
 
-      <StepFooter current="/recovery/packet" />
+      <div className="max-w-[720px] mx-auto mt-6 flex items-center gap-3"><button className="btn-primary" disabled={pdfBusy} onClick={async()=>{setPdfBusy(true);setPdfError(null);try{const blob=await api.downloadRecoveryPacketPdf(incidentId);const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=`primhora-${incidentId}-evidence-packet.pdf`;a.click();URL.revokeObjectURL(url)}catch(e:any){setPdfError(e.message||"PDF export failed")}finally{setPdfBusy(false)}}}>{pdfBusy?"Preparing PDF...":"Export evidence packet PDF"}</button>{pdfError&&<span className="text-xs text-vermillion">{pdfError}</span>}</div><StepFooter current="/recovery/packet" />
     </div>
   );
 }

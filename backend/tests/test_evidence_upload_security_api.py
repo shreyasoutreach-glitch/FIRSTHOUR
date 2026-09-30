@@ -85,7 +85,7 @@ def test_traversal_filename_cannot_escape_storage_dir(client, malicious_filename
     project_root_marker = storage_dir.parent  # anything written outside storage_dir would land here or above
 
     resp = api_client.post(
-        "/evidence/upload",
+        "/api/evidence/upload",
         data={"merchant_id": "MER_SEC", "incident_id": "", "source_label": "upload"},
         files={"file": (malicious_filename, io.BytesIO(b"malicious content"), "text/plain")},
         headers=_auth_headers(),
@@ -114,7 +114,7 @@ def test_traversal_filename_cannot_escape_storage_dir(client, malicious_filename
 def test_normal_filename_still_works_end_to_end(client):
     api_client, storage_dir = client
     resp = api_client.post(
-        "/evidence/upload",
+        "/api/evidence/upload",
         data={"merchant_id": "MER_SEC", "incident_id": "", "source_label": "whatsapp"},
         files={"file": ("whatsapp_export.txt", io.BytesIO(b"Rs 50,000 to Test Vendor"), "text/plain")},
         headers=_auth_headers(),
@@ -134,7 +134,7 @@ def test_normal_filename_still_works_end_to_end(client):
 def test_traversal_filename_response_filename_is_sanitized(client):
     api_client, _storage_dir = client
     resp = api_client.post(
-        "/evidence/upload",
+        "/api/evidence/upload",
         data={"merchant_id": "MER_SEC", "incident_id": "", "source_label": "upload"},
         files={"file": ("../../../../etc/cron.d/evil", io.BytesIO(b"x"), "text/plain")},
         headers=_auth_headers(),

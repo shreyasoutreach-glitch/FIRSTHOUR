@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173"
     auth_provider_domain: str = ""
     auth_provider_audience: str = ""
+    max_evidence_bytes: int = 10 * 1024 * 1024
 
     razorpay_key_id: str = ""
     razorpay_key_secret: str = ""

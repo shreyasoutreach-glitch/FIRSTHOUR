@@ -14,7 +14,7 @@ from app.schemas.schemas import (
 )
 from app.services.recovery import command as recovery_command
 from app.services.recovery.convergence import check_convergence
-from app.services.integrations import razorpayx
+from app.services.recovery.packet import build_recovery_packet
 
 router = APIRouter(tags=["recovery-command"])
 
@@ -120,18 +120,22 @@ def reject(command_id: str, body: RejectRecoveryCommandRequest, db: Session = De
     return _serialize(rc)
 
 
-@router.post("/recovery-commands/{command_id}/execute", response_model=RecoveryCommandResponse)
-def execute(command_id: str, db: Session = Depends(get_tenant_db),
-            user: m.User = Depends(require_permission("EXECUTE"))):
+@router.post("/recovery-commands/{command_id}/execute")
+def execute(command_id: str, db: Session = Depends(get_tenant_db)):
+    raise HTTPException(
+        status_code=409,
+        detail="PRIMHORA is read-only. It prepares evidence packets; it never executes financial actions.",
+    )
+
+
+@router.post("/recovery-commands/{command_id}/prepare-packet", response_model=RecoveryCommandResponse)
+def prepare_packet(command_id: str, db: Session = Depends(get_tenant_db),
+                   user: m.User = Depends(require_permission("APPROVE"))):
     rc = _get_command_or_404(db, command_id, for_update=True)
     try:
-        rc = recovery_command.execute_command(db, rc, user.id)
+        rc = recovery_command.prepare_packet_command(db, rc, user.id)
     except recovery_command.InvalidRecoveryTransition as e:
         raise HTTPException(409, str(e))
-    except razorpayx.RazorpayXNotConfigured as e:
-        raise HTTPException(503, str(e))
-    except razorpayx.RazorpayXAPIError as e:
-        raise HTTPException(e.status, e.detail)
     return _serialize(rc)
 
 
@@ -150,3 +154,17 @@ def verify(command_id: str, db: Session = Depends(get_tenant_db),
 def get_convergence(command_id: str, db: Session = Depends(get_tenant_db)):
     rc = _get_command_or_404(db, command_id, for_update=True)
     return check_convergence(db, rc)
+
+@router.get("/incident/{incident_id}/recovery-packet.pdf")
+def get_recovery_packet_pdf(incident_id: str, db: Session = Depends(get_tenant_db)):
+    if incident_repo.get_incident(db, incident_id) is None:
+        raise HTTPException(404, "incident not found")
+    from fastapi.responses import Response
+    from app.services.recovery.pdf import render_recovery_packet_pdf
+    packet = build_recovery_packet(db, incident_id)
+    pdf = render_recovery_packet_pdf(packet)
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="primhora-{incident_id}-evidence-packet.pdf"'},
+    )
