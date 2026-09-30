@@ -30,6 +30,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     JSON,
     String,
     Text,
@@ -263,6 +264,7 @@ class EvidenceArtifact(Base, TenantScoped):
     sha256: Mapped[str] = mapped_column(String(64), index=True)
     source_label: Mapped[str] = mapped_column(String(40), default="upload")  # whatsapp/sms/bank/email
     raw_text: Mapped[str] = mapped_column(Text, default="")
+    content_bytes: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
     extraction_status: Mapped[str] = mapped_column(String(24), default="pending", index=True)
     uploaded_at: Mapped[dt.datetime] = mapped_column(DateTime, default=utcnow, index=True)
 
