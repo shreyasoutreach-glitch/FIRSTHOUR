@@ -31,6 +31,12 @@ def _claims_from_model(result, source_artifact_id: str, method: str) -> List[Dic
 
 
 class GeminiEvidenceProvider:
+    """AI may locate source snippets, but it may not author financial values.
+
+    Amounts and beneficiary identifiers are parsed deterministically from the
+    model-returned source snippets by DeterministicEvidenceProvider. The model
+    therefore never becomes the authority for a financial value.
+    """
     def __init__(self, api_key: str | None = None):
         self.api_key = api_key or os.environ.get("GEMINI_API_KEY")
         if not self.api_key:
@@ -42,32 +48,42 @@ class GeminiEvidenceProvider:
     def _schema():
         from pydantic import BaseModel, Field
 
-        class ClaimExtraction(BaseModel):
-            claim_type: str = Field(description="Must be one of: amount, beneficiary, instruction_signal")
-            amount: float | None = Field(None, description="The monetary amount, if claim_type is amount")
-            currency: str | None = Field(None, description="Currency code (e.g., INR), if claim_type is amount")
-            beneficiary_name: str | None = Field(None, description="Name of the person/entity receiving funds")
-            source_text: str = Field(description="Exact snippet from the source supporting this claim")
-            keywords: list[str] | None = Field(None, description="Urgent/instructional keywords")
+        class EvidenceSnippet(BaseModel):
+            source_text: str = Field(description="Exact visible snippet from the supplied evidence.")
+            keywords: list[str] = Field(default_factory=list, description="Visible instruction/urgency words only.")
 
         class EvidenceExtractionResult(BaseModel):
-            claims: list[ClaimExtraction]
+            snippets: list[EvidenceSnippet]
 
         return EvidenceExtractionResult
 
     def _prompt(self) -> str:
         return (
-            "You are extracting evidence for a financial investigation. "
-            "Extract only claims explicitly visible in the supplied evidence. "
-            "Do not infer identity, authorization, transaction status, or intent. "
-            "Extract amounts, beneficiary names, and instruction/urgency signals. "
-            "Every claim must include the exact source text that supports it."
+            "You are locating evidence for a financial investigation. "
+            "Return only exact snippets visibly present in the evidence and visible instruction/urgency keywords. "
+            "Do not generate, normalize, calculate, infer or restate any amount, beneficiary, timestamp, identity, status or score. "
+            "The exact source snippet will be parsed deterministically by the application."
         )
+
+    def _compile_snippets(self, snippets, source_artifact_id: str) -> List[Dict[str, Any]]:
+        deterministic = DeterministicEvidenceProvider()
+        claims: List[Dict[str, Any]] = []
+        for snippet in snippets:
+            claims.extend(deterministic.extract(snippet.source_text, source_artifact_id))
+            if snippet.keywords:
+                claims.append({
+                    "id": f"CLM_{uuid.uuid4().hex[:10]}",
+                    "source_artifact_id": source_artifact_id,
+                    "source_location": "model_snippet",
+                    "extraction_method": "gemini_2_5_flash_snippet_locator",
+                    "claim_type": "instruction_signal",
+                    "claim_value": {"keywords": sorted(set(snippet.keywords))},
+                })
+        return claims
 
     def extract(self, raw_text: str, source_artifact_id: str) -> List[Dict[str, Any]]:
         try:
             from google.genai import types
-
             schema = self._schema()
             response = self.client.models.generate_content(
                 model="gemini-2.5-flash",
@@ -81,27 +97,18 @@ class GeminiEvidenceProvider:
             if not response.text:
                 return []
             result = schema.model_validate_json(response.text)
-            return _claims_from_model(result, source_artifact_id, "gemini_2_5_flash_text")
+            return self._compile_snippets(result.snippets, source_artifact_id)
         except Exception as exc:
             logging.error("Gemini text extraction failed: %s", exc)
             raise
 
     def extract_binary(self, data: bytes, mime_type: str, source_artifact_id: str) -> tuple[str, List[Dict[str, Any]]]:
-        """Extract evidence from an image/PDF using Gemini's multimodal input.
-
-        The model output remains candidate evidence only. Verification against
-        financial records happens later in routes_evidence.py.
-        """
         try:
             from google.genai import types
-
             schema = self._schema()
             response = self.client.models.generate_content(
                 model="gemini-2.5-flash",
-                contents=[
-                    types.Part.from_bytes(data=data, mime_type=mime_type),
-                    self._prompt(),
-                ],
+                contents=[types.Part.from_bytes(data=data, mime_type=mime_type), self._prompt()],
                 config=types.GenerateContentConfig(
                     response_mime_type="application/json",
                     response_schema=schema,
@@ -111,14 +118,8 @@ class GeminiEvidenceProvider:
             if not response.text:
                 return "", []
             result = schema.model_validate_json(response.text)
-            claims = _claims_from_model(result, source_artifact_id, "gemini_2_5_flash_vision")
-            # Preserve the model's grounded snippets as searchable text, not
-            # as asserted facts. The claims are independently verified later.
-            raw_text = "\n".join(
-                c["claim_value"].get("raw_text", "")
-                for c in claims
-                if isinstance(c.get("claim_value"), dict)
-            )
+            claims = self._compile_snippets(result.snippets, source_artifact_id)
+            raw_text = "\n".join(s.source_text for s in result.snippets)
             return raw_text, claims
         except Exception as exc:
             logging.error("Gemini multimodal extraction failed: %s", exc)

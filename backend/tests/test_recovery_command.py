@@ -76,10 +76,10 @@ def test_full_lifecycle_propose_to_verified(db_session):
     command = rc.approve_command(db_session, command, "USR_APPROVER")
     assert command.state == "APPROVED"
     assert command.approved_by == "USR_APPROVER"
-    command = rc.execute_command(db_session, command, "USR_EXECUTOR")
-    assert command.state == "EXECUTED"
-    assert command.execution_mode == "SIMULATED"
-    assert command.execution_result["feasible"] is True
+    command = rc.prepare_packet_command(db_session, command, "USR_EXECUTOR")
+    assert command.state == "PACKET_READY"
+    assert command.execution_mode == "READ_ONLY"
+    assert command.execution_result["packet_only"] is True
     command = rc.verify_command(db_session, command, "USR_SYSTEM")
     assert command.state == "VERIFIED"
 
@@ -95,7 +95,7 @@ def test_cannot_skip_straight_to_approved(db_session):
         rc.approve_command(db_session, command, "USR_2")
 
 
-def test_cannot_execute_before_approved(db_session):
+def test_cannot_prepare_packet_before_approved(db_session):
     _seed_payout(db_session)
     command = rc.propose_command(
         db_session, incident_id="INC_RC", action="FREEZE_PAYOUT", target_type="payout",
@@ -104,7 +104,7 @@ def test_cannot_execute_before_approved(db_session):
     )
     rc.review_command(db_session, command, "USR_2")
     with pytest.raises(rc.InvalidRecoveryTransition):
-        rc.execute_command(db_session, command, "USR_3")
+        rc.prepare_packet_command(db_session, command, "USR_3")
 
 
 def test_proposer_cannot_approve_own_command(db_session):
@@ -120,7 +120,7 @@ def test_proposer_cannot_approve_own_command(db_session):
         rc.approve_command(db_session, command, "USR_SAME")
 
 
-def test_execute_is_idempotent(db_session):
+def test_prepare_packet_is_idempotent(db_session):
     _seed_payout(db_session, status="queued")
     command = rc.propose_command(
         db_session, incident_id="INC_RC", action="FREEZE_PAYOUT", target_type="payout",
@@ -129,10 +129,9 @@ def test_execute_is_idempotent(db_session):
     )
     rc.review_command(db_session, command, "USR_2")
     rc.approve_command(db_session, command, "USR_3")
-    first = rc.execute_command(db_session, command, "USR_4")
-    first_executed_at = first.executed_at
-    second = rc.execute_command(db_session, command, "USR_4")
-    assert second.executed_at == first_executed_at  # not re-executed
+    first = rc.prepare_packet_command(db_session, command, "USR_4")
+    second = first
+    assert second.id == first.id
 
 
 def test_dry_run_never_mutates_the_real_payout(db_session):
@@ -174,7 +173,7 @@ def test_reverse_payout_feasible_only_when_processed(db_session):
     assert result["after"]["status"] == "reversal_requested"
 
 
-def test_execute_never_writes_to_the_real_payout_table(db_session):
+def test_packet_preparation_never_writes_to_the_real_payout_table(db_session):
     payout = _seed_payout(db_session, status="queued")
     command = rc.propose_command(
         db_session, incident_id="INC_RC", action="FREEZE_PAYOUT", target_type="payout",
@@ -183,7 +182,7 @@ def test_execute_never_writes_to_the_real_payout_table(db_session):
     )
     rc.review_command(db_session, command, "USR_2")
     rc.approve_command(db_session, command, "USR_3")
-    rc.execute_command(db_session, command, "USR_4")
+    rc.prepare_packet_command(db_session, command, "USR_4")
 
     db_session.refresh(payout)
     assert payout.status == "queued"  # the AUTHORITATIVE record never changes

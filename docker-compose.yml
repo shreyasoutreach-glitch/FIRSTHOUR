@@ -20,6 +20,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-first_hour}:${POSTGRES_PASSWORD:-first_hour}@postgres:5432/${POSTGRES_DB:-first_hour}
       DEMO_MODE: ${DEMO_MODE:-true}
+      DEMO_BOOTSTRAP_ON_START: ${DEMO_BOOTSTRAP_ON_START:-true}
       SEED: ${SEED:-42}
       EVIDENCE_STORAGE_DIR: /app/storage/evidence
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}

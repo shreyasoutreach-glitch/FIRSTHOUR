@@ -1,7 +1,7 @@
 # PRIMHORA Honest Audit
 
 Audit date: 2026-09-30
-Base commit: c3d48ed2288909a934cca96f74c230fc278d4242
+Working branch: primhora-production-rebuild
 Working branch: primhora-production-rebuild
 
 ## Executive status
@@ -22,10 +22,10 @@ The biggest remaining product gap is the boundary between customer-owned data an
 | Backend root | Render logs show GET / 200 | VERIFIED |
 | Local HTTP smoke test | urllib request to Render URL | UNVERIFIED: audit container DNS cannot resolve external host |
 | Local clone/build | attempted during engineering pass | UNVERIFIED: container DNS cannot resolve github.com |
-| Backend pytest | no executable checkout in audit container; no CI workflow exists | UNVERIFIED |
+| Backend pytest | CI run 36677872645 | VERIFIED: PASS |
 | Frontend tsc/build | Render build succeeded; local execution unavailable | UNVERIFIED locally; Render build VERIFIED |
-| Docker Compose | file inspected; Docker daemon unavailable | UNVERIFIED |
-| GitHub Actions | .github/workflows returned 404 | NOT PRESENT |
+| Docker Compose | CI run 36677872645 | VERIFIED: PASS |
+| GitHub Actions | CI run 36677872645 | VERIFIED: PASS |
 
 No test result is described as passing unless it was actually executed.
 
@@ -49,7 +49,7 @@ No test result is described as passing unless it was actually executed.
 | Recovery packet | FUNCTIONAL | Computed packet data |
 | Recovery proposal/review/approval/reject | FUNCTIONAL CODE PATH | Structured RecoveryCommand endpoints exist |
 | Recovery dry-run | FUNCTIONAL CODE PATH | Endpoint/service exist |
-| Recovery execution | BROKEN AGAINST NEW PRODUCT CONTRACT | Current code can invoke RazorpayX when configured; PRIMHORA must remain read-only |
+| Recovery execution | BLOCKED BY DESIGN | Endpoint returns 409 and does not call a provider |
 | Recovery verification/convergence | PARTIAL | Exists but requires read-only semantic hardening and benchmark verification |
 | Audit log | FUNCTIONAL CODE PATH | Audit service and endpoint |
 | Workspace overview | PARTIAL | UI exists, organization is browser-session state |
@@ -60,11 +60,11 @@ No test result is described as passing unless it was actually executed.
 | Tenant isolation | CODE PATH FUNCTIONAL / TEST UNVERIFIED | TenantScopedSession exists |
 | RBAC | CODE PATH FUNCTIONAL / TEST UNVERIFIED | Roles/permissions exist |
 | RazorpayX | FUNCTIONAL ADAPTER / NOT CONNECTED | Adapter exists; credentials absent |
-| Generic CSV ingestion | ABSENT | No customer normalization/import pipeline |
+| Generic CSV ingestion | FUNCTIONAL CODE PATH | Authenticated generic payout CSV normalizer/import |
 | Multi-source ingestion | PARTIAL | RazorpayX adapter only |
-| PDF export | ABSENT | No verified PDF export |
+| PDF export | FUNCTIONAL CODE PATH / TESTING | ReportLab service + endpoint + UI; dedicated test added |
 | Docker Compose | PRESENT / UNVERIFIED | Not executed with a Docker daemon |
-| CI | ABSENT | No GitHub Actions workflow |
+| CI | FUNCTIONAL | GitHub Actions backend/frontend/Docker lanes |
 | Evaluation harness | PRESENT / UNVERIFIED | Tests/benchmarks exist; fresh run unavailable |
 | Production monitoring | ABSENT | No recurring customer-source monitoring |
 
@@ -103,12 +103,30 @@ Model extraction can produce candidate amount/beneficiary claims, but these are 
 
 Phase 4 must enforce this boundary in schemas, provenance, tests and UI wording.
 
-## Phase 1 blockers
+## Remaining blockers
 
-1. Disable all real-money execution paths.
-2. Make customer-owned CSV ingestion real.
-3. Make organization/data-source ownership persistent for the supported customer workflow.
-4. Add verified PDF evidence-packet export.
-5. Add CI and reproducible Docker verification.
-6. Establish executable precision/recall evaluation.
-7. Complete market/segment evidence before expanding product scope.
+1. Make organization/membership persistence and production identity real.
+2. Complete dedicated HTTP-level customer CSV import tests.
+3. Complete stronger tenant/resource ownership tests.
+4. Expand executable precision/recall evaluation to customer-import scenarios.
+5. Keep broader provider integrations adapter-only until credentials/authorization exist.
+
+
+## Phase 4-6 verification update
+
+GitHub Actions run 36677872645 on 2026-09-30 completed successfully.
+
+- Backend: pytest passed.
+- Frontend: npm ci, TypeScript lint, and production build passed.
+- Docker: compose build/start/healthcheck/teardown passed.
+- Synthetic evaluation step passed and emitted metrics.
+- Code search for "buildathon", "hackathon", and "judge" returned zero indexed matches at audit time.
+
+Synthetic evaluation result:
+- event detection precision 1.000, recall 1.000, F1 1.000 on 200 clean + 100 suspicious synthetic cases;
+- entity-link precision 1.000, recall 1.000, F1 1.000 on 6 labeled entity cases;
+- entity exact-decision accuracy 0.833 on 6 cases;
+- timeline ordering accuracy 1.000 on the fixture;
+- replay consistency 1.000 across five repeated runs.
+
+These are fixture metrics, not production accuracy.

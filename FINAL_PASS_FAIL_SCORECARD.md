@@ -31,3 +31,15 @@ This scorecard records verification status rather than product claims.
 A requirement is complete only after the command actually runs and output is recorded. Required evidence: backend pytest, frontend type-check/build, Docker health, CI result, CSV fixture, evidence fixture, PDF generation, and an explicit test proving no recovery endpoint can invoke an external money-moving API.
 
 No green checkbox is allowed for an unexecuted test.
+
+
+## Latest CI verification
+
+Run 36671174979, 2026-09-30: PASS.
+
+Backend tests: PASS.
+Frontend TypeScript/build: PASS.
+Docker Compose health verification: PASS.
+Synthetic evaluation report: PASS.
+
+Synthetic evaluation numbers are recorded in docs/EVALUATION.md and README.md. They are not real-world performance claims.

@@ -57,3 +57,27 @@ Phase 6 executable precision/recall evaluation and failure reporting.
 
 ## Verification status
 AUDIT.md records the current verified/unverified state. Render services are live. Local test execution was unavailable in the current audit environment, so unexecuted tests are not described as passing.
+
+
+## Phase 6 measured synthetic evaluation
+
+CI run 36671174979 executed the benchmark on 2026-09-30.
+
+Dataset: primhora-synthetic-eval-v2
+Population: 300 synthetic labeled cases
+Seed: 20260930
+
+| Metric | Result |
+|---|---:|
+| Event detection precision | 1.000 |
+| Event detection recall | 1.000 |
+| Event detection F1 | 1.000 |
+| Event detection TP / FP / TN / FN | 100 / 0 / 200 / 0 |
+| Entity-link precision | 1.000 |
+| Entity-link recall | 1.000 |
+| Entity-link F1 | 1.000 |
+| Entity exact-decision accuracy | 0.833 on 6 labeled cases |
+| Timeline ordering accuracy | 1.000 on the fixture |
+| Replay consistency | 1.000 across 5 repeated runs |
+
+These numbers are **synthetic fixture results only**. They are not real-world fraud-detection accuracy, are not representative of Indian companies, and are not evidence of product-market fit. The event detector fixture was intentionally separable: the suspicious synthetic population was generated with strong anomaly signals. A hidden DB-backed evaluation suite is still required.
