@@ -151,20 +151,12 @@ Every generator function takes its volume from a constant at the top of `seed.py
 produces the full production-scale universe. The trade made here was seed runtime
 (~13 seconds) and ZIP size, not architecture.
 
-The evaluation harness is similarly scaled down from "50–100 hidden DB-backed cases" to
-a fixture-based harness exercising the same pure scoring/resolution/temporal functions —
-see the `scope_note` field in `GET /evaluation`'s response.
+The evaluation system now has two layers: a reproducible fixture benchmark plus a DB-backed API-path suite of 60 labeled cases in `tests/test_db_backed_evaluation.py`. The latter persists records through the customer CSV import route and reports TP/FP/TN/FN plus an explicit failure list in CI. It is a visible regression suite, not a claim of external fraud-detection accuracy.
 
-## What is *not* implemented (stated plainly)
+## Current implementation boundaries
 
-- **Vision/OCR extraction for image and PDF evidence.** The pipeline's shape supports it
-  (`mime_type` is validated, `extraction_status` tracks a `queued_for_vision_extraction`
-  state), but this offline build only extracts from `text/*` uploads. `POST
-  /evidence/analyze` returns a `409` with an honest explanation if you try to analyze an
-  image/PDF artifact rather than pretending to have processed it.
-- **A real Anthropic API call.** `ANTHROPIC_API_KEY` is wired into `.env.example` as the
-  seam for it, but the shipped code path always uses the deterministic rule-based
-  extractor, even if the key is set.
-- **Docker end-to-end execution.** `docker-compose.yml` is written, YAML-validated, and
-  internally consistent with `backend/app/core/config.py`'s `DATABASE_URL` format, but
-  was not run to completion in the build environment (no Docker daemon available there).
+- **Production customer identity and persistent organization provisioning.** The OIDC validation seam exists, but the deployed product still runs in explicitly labelled demo mode.
+- **Generic customer ingestion is now implemented as a read-only CSV path.** Provider-specific live adapters remain credential-dependent.
+- **PDF evidence-packet export is implemented.** External financial execution is intentionally absent.
+- **Docker Compose verification is now executed in CI.**
+- **Large hidden DB-backed evaluation is not complete.** The current benchmark is a synthetic fixture suite and must not be presented as production accuracy.

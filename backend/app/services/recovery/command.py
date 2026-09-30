@@ -11,9 +11,9 @@ services/recovery/packet.py, which only ever *reads* and assembles a
 document -- nothing in that file can change financial state or the
 command's own lifecycle.
 
-State machine (matches the brief exactly):
+State machine for the read-only product:
 
-    PROPOSED -> REVIEWED -> APPROVED -> EXECUTED -> VERIFIED
+    PROPOSED -> REVIEWED -> APPROVED -> PACKET_READY -> VERIFIED
     PROPOSED -> REJECTED
     REVIEWED -> REJECTED
 
@@ -47,8 +47,8 @@ from app.models import entities as m
 RECOVERY_TRANSITIONS: dict[str, set[str]] = {
     "PROPOSED": {"REVIEWED", "REJECTED"},
     "REVIEWED": {"APPROVED", "REJECTED"},
-    "APPROVED": {"EXECUTED"},
-    "EXECUTED": {"VERIFIED"},
+    "APPROVED": {"PACKET_READY"},
+    "PACKET_READY": {"VERIFIED"},
     "REJECTED": set(),
     "VERIFIED": set(),
 }
@@ -133,8 +133,8 @@ def propose_command(
 
 def _expected_effect_text(action: str) -> str:
     return {
-        "FREEZE_PAYOUT": "Payout would be held before settlement; funds would not reach the beneficiary.",
-        "REVERSE_PAYOUT": "A reversal claim would be initiated with the bank/UPI network; success is not guaranteed and depends on the beneficiary's bank.",
+        "FREEZE_PAYOUT": "Prepare a request for the authorized payment provider or bank to review/cancel the payout if its current state permits.",
+        "REVERSE_PAYOUT": "Prepare a reversal/dispute request for the authorized payment provider or bank. PRIMHORA does not submit it.",
     }.get(action, "")
 
 
@@ -264,71 +264,41 @@ def reject_command(db: Session, command: m.RecoveryCommand, user_id: str, reason
 
 
 def execute_command(db: Session, command: m.RecoveryCommand, user_id: str) -> m.RecoveryCommand:
-    """Execute the command against the configured payment rail when a real
-    provider operation exists.
+    raise ReadOnlyRecoveryError(
+        "PRIMHORA is read-only. Financial execution is intentionally unavailable."
+    )
 
-    FREEZE_PAYOUT maps to RazorpayX's documented queued-payout cancellation
-    endpoint. REVERSE_PAYOUT remains deliberately manual because a processed
-    RazorpayX payout is not reversible through the payout-cancellation API.
-    The system never records a simulated action as a successful live action.
-    """
-    if command.state == "EXECUTED":
-        return command
-    _require_transition(command.state, "EXECUTED")
 
-    from app.services.integrations import razorpayx
+class ReadOnlyRecoveryError(RuntimeError):
+    pass
 
+
+def prepare_packet_command(db: Session, command: m.RecoveryCommand, user_id: str) -> m.RecoveryCommand:
+    _require_transition(command.state, "PACKET_READY")
     old_state = command.state
-
-    if command.action == "FREEZE_PAYOUT":
-        result = _simulate(db, command)
-        if not result["feasible"]:
-            raise InvalidRecoveryTransition(
-                "Payout cannot be frozen from its current state. "
-                "Only a queued RazorpayX payout can be cancelled."
-            )
-        live_response = razorpayx.cancel_queued_payout(command.target_id)
-        payout = db.get(m.Payout, command.target_id)
-        if payout is not None:
-            payout.status = "cancelled"
-        result = {
-            **result,
-            "live_provider": "razorpayx",
-            "provider_response": live_response,
-            "live": True,
-        }
-        command.execution_mode = "LIVE"
-        summary = f"{old_state} -> EXECUTED (LIVE RazorpayX cancellation)"
-    else:
-        result = _simulate(db, command)
-        command.execution_mode = "MANUAL"
-        result = {
-            **result,
-            "live": False,
-            "manual_action_required": True,
-            "reason": (
-                "RazorpayX does not expose processed-payout cancellation through "
-                "the queued payout cancel endpoint. The recovery packet must be "
-                "taken to the bank/Razorpay dispute process."
-            ),
-        }
-        summary = f"{old_state} -> EXECUTED (MANUAL)"
-
-    command.state = "EXECUTED"
-    command.execution_result = result
-    command.executed_at = dt.datetime.now(dt.timezone.utc)
-    command.updated_at = command.executed_at
+    result = _simulate(db, command)
+    command.dry_run_result = result
+    command.state = "PACKET_READY"
+    command.execution_mode = "READ_ONLY"
+    command.execution_result = {
+        "live": False,
+        "executed": False,
+        "packet_only": True,
+        "hypothetical_action": result,
+        "message": "Evidence packet prepared for an authorized external operator. No financial action was executed.",
+    }
+    command.updated_at = dt.datetime.now(dt.timezone.utc)
     audit_log(
         db,
         incident_id=command.incident_id,
         actor="HUMAN",
         actor_user_id=user_id,
-        event_type="RECOVERY_COMMAND_EXECUTED",
-        summary=summary,
+        event_type="RECOVERY_PACKET_READY",
+        summary=f"{old_state} -> PACKET_READY",
         sources=[command.id],
-        detail={"feasible": result["feasible"], "live": result.get("live", False)},
+        detail={"read_only": True},
         before_state={"state": old_state},
-        after_state={"state": "EXECUTED", "execution_mode": command.execution_mode},
+        after_state={"state": "PACKET_READY", "execution_mode": "READ_ONLY"},
     )
     db.commit()
     return command

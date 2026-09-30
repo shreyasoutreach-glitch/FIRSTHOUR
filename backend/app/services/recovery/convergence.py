@@ -16,11 +16,11 @@ consistent with what was simulated? Concretely:
 
 1. No duplicate/orphaned commands -- exactly one non-rejected RecoveryCommand
    exists for this (target_id, action) pair.
-2. The audit trail has the full expected chain (PROPOSED -> ... -> EXECUTED)
+2. The audit trail has the full expected chain (PROPOSED -> ... -> PACKET_READY)
    with no gaps, in chronological order.
 3. Re-simulating the command RIGHT NOW against the current state of its
    target payout produces the same feasibility/after-state that was
-   recorded at execution time. If the target has changed since (a Chaos Lab
+   recorded when the evidence packet was prepared. If the target has changed since (a Chaos Lab
    scenario touched the same payout, for example), this correctly reports
    STILL_DIVERGENT with the specific discrepancy -- that is the check
    actually catching something, not passing by construction.
@@ -76,11 +76,11 @@ def check_convergence(db: Session, command: m.RecoveryCommand) -> dict:
     audit_rows = [a for a in audit_rows if command.id in (a.sources or [])]
     event_types_present = [a.event_type for a in audit_rows]
     has_propose = "RECOVERY_COMMAND_PROPOSED" in event_types_present
-    has_execute = "RECOVERY_COMMAND_EXECUTED" in event_types_present
+    has_execute = "RECOVERY_PACKET_READY" in event_types_present
     propose_before_execute = True
     if has_propose and has_execute:
         propose_idx = event_types_present.index("RECOVERY_COMMAND_PROPOSED")
-        execute_idx = event_types_present.index("RECOVERY_COMMAND_EXECUTED")
+        execute_idx = event_types_present.index("RECOVERY_PACKET_READY")
         propose_before_execute = propose_idx < execute_idx
     audit_complete = has_propose and has_execute and propose_before_execute
     checks.append({"check": "audit_trail_complete", "passed": audit_complete,
@@ -93,12 +93,12 @@ def check_convergence(db: Session, command: m.RecoveryCommand) -> dict:
 
     from app.core.serialization import to_json_safe
     fresh = to_json_safe(_simulate(db, command))
-    recorded = command.execution_result or {}
+    recorded = command.dry_run_result or {}
     resimulation_matches = (
         fresh.get("feasible") == recorded.get("feasible")
         and fresh.get("after") == recorded.get("after")
     )
-    checks.append({"check": "resimulation_matches_recorded_execution", "passed": resimulation_matches,
+    checks.append({"check": "resimulation_matches_recorded_packet", "passed": resimulation_matches,
                    "detail": {"recorded_after": recorded.get("after"), "current_after": fresh.get("after")}})
     if not resimulation_matches:
         discrepancies.append(

@@ -11,6 +11,7 @@ from app.api import (
     routes_incident,
     routes_merchant,
     routes_metrics,
+    routes_import,
     routes_recovery,
     routes_webhooks,
 )
@@ -51,6 +52,7 @@ app.include_router(routes_incident.router, prefix="/api")
 app.include_router(routes_evidence.router, prefix="/api")
 app.include_router(routes_merchant.router, prefix="/api")
 app.include_router(routes_metrics.router, prefix="/api")
+app.include_router(routes_import.router, prefix="/api")
 app.include_router(routes_demo.router, prefix="/api")
 app.include_router(routes_recovery.router, prefix="/api")
 app.include_router(routes_webhooks.router, prefix="/api")

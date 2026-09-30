@@ -7,12 +7,12 @@ import ErrorBanner from "../components/ErrorBanner";
 import { formatINR } from "../lib/format";
 import { StepFooter } from "../components/AppShell";
 
-const LIFECYCLE = ["PROPOSED", "REVIEWED", "APPROVED", "EXECUTED", "VERIFIED"];
+const LIFECYCLE = ["PROPOSED", "REVIEWED", "APPROVED", "PACKET_READY", "VERIFIED"];
 const ROLE_OPTIONS = ["ANALYST", "FINANCE_OPERATOR", "INVESTIGATOR", "APPROVER", "ADMINISTRATOR"];
 
 const ACTION_LABELS: Record<string, string> = {
-  FREEZE_PAYOUT: "Freeze payout before settlement",
-  REVERSE_PAYOUT: "Request reversal of settled payout",
+  FREEZE_PAYOUT: "Prepare a freeze-review request",
+  REVERSE_PAYOUT: "Prepare a reversal/dispute request",
 };
 
 export default function RecoveryCommand() {
@@ -102,7 +102,7 @@ export default function RecoveryCommand() {
   const approve = () => runAction(async () => api.approveCommand(command.id, await getDemoToken(actingRole)));
   const reject = () => runAction(async () => api.rejectCommand(command.id, await getDemoToken(actingRole), "Rejected during review"));
   const dryRun = () => runAction(async () => api.dryRunCommand(command.id, await getDemoToken(actingRole)));
-  const execute = () => runAction(async () => api.executeCommand(command.id, await getDemoToken(actingRole)));
+  const preparePacket = () => runAction(async () => api.preparePacket(command.id, await getDemoToken(actingRole)));
   const verify = () => runAction(async () => api.verifyCommand(command.id, await getDemoToken(actingRole)));
 
   const stepIndex = command ? LIFECYCLE.indexOf(command.state) : -1;
@@ -114,7 +114,7 @@ export default function RecoveryCommand() {
         Now decide what to do.
       </h1>
       <p className="text-[15px] leading-relaxed text-text_primary/70 mb-10 max-w-[600px]">
-        Primhora turns the reconstructed case into a governed recovery decision. Every action is proposed, reviewed and approved separately. Execution in this experience is always <strong>simulated</strong>.
+        Primhora turns the reconstructed case into a governed recovery decision. Every action is proposed, reviewed and approved separately. PRIMHORA is read-only. This step prepares an evidence packet for an authorized external operator.
       </p>
 
       {error && <ErrorBanner message={error} onRetry={reload} />}
@@ -209,11 +209,11 @@ export default function RecoveryCommand() {
                 {command?.state === "APPROVED" && (
                   <>
                     <button className="btn-secondary" disabled={busy} onClick={dryRun}>Dry run</button>
-                    <button className="btn-primary" disabled={busy} onClick={execute}>Execute simulated recovery</button>
+                    <button className="btn-primary" disabled={busy} onClick={preparePacket}>Prepare evidence packet</button>
                   </>
                 )}
-                {command?.state === "EXECUTED" && (
-                  <button className="btn-primary" disabled={busy} onClick={verify}>Verify convergence</button>
+                {command?.state === "PACKET_READY" && (
+                  <button className="btn-primary" disabled={busy} onClick={verify}>Verify packet consistency</button>
                 )}
               </div>
 
@@ -230,9 +230,9 @@ export default function RecoveryCommand() {
                 </div>
               )}
 
-              {command?.state === "EXECUTED" && command?.execution_result && (
+              {command?.state === "PACKET_READY" && command?.execution_result && (
                 <div className="mt-6 pt-6 border-t border-gold/20 text-[13px]">
-                  <p className="label-eyebrow mb-2">Execution result &middot; {command.execution_mode}</p>
+                  <p className="label-eyebrow mb-2">Packet preparation &middot; {command.execution_mode}</p>
                   <p className="text-text_primary/70">{command.execution_result.expected_convergence}</p>
                 </div>
               )}
@@ -248,8 +248,8 @@ export default function RecoveryCommand() {
             <ul className="text-[13px] text-text_primary/65 space-y-2 leading-relaxed">
               <li>PRIMHORA does not contact Arrow Industries&rsquo; bank.</li>
               <li>PRIMHORA does not freeze or reverse anything with a real payment network.</li>
-              <li>Execution here is always recorded as SIMULATED, never EXECUTED-for-real.</li>
-              <li>Only an Administrator-permissioned user can execute, and never the same person who proposed it can approve it.</li>
+              <li>This workflow only prepares a packet. No external financial action is executed.</li>
+              <li>Approval is separated from proposal, and packet preparation does not contact a payment network.</li>
             </ul>
           </aside>
         </div>

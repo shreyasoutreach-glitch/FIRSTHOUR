@@ -5,6 +5,8 @@ import { formatINR } from "../lib/format";
 import ErrorBanner from "../components/ErrorBanner";
 
 const SCENARIOS = [
+  { id: "vendor_bank_change", label: "Vendor Bank-Detail Change",
+    description: "An existing vendor changes bank details by email before a payout is sent to the new account." },
   { id: "new_beneficiary_burst", label: "New Beneficiary Burst",
     description: "Three large payouts to a brand-new vendor inside nine minutes." },
   { id: "executive_impersonation", label: "Executive Impersonation",
@@ -79,9 +81,9 @@ export default function ChaosLab() {
     <div className="max-w-canvas mx-auto px-6 sm:px-10 py-16">
       <div className="flex items-start justify-between flex-wrap gap-4 mb-4">
         <div>
-          <p className="label-eyebrow mb-4">Chaos Lab &middot; Live Demonstration</p>
+          <p className="label-eyebrow mb-4">Chaos Lab &middot; Synthetic Scenario Lab</p>
           <h1 className="font-display text-[32px] sm:text-[36px] leading-tight">
-            Break the financial reality.
+            Rehearse a financial incident.
           </h1>
         </div>
         <button className="btn-secondary" onClick={reset} disabled={resetting}>

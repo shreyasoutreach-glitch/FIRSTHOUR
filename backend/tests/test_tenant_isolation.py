@@ -129,34 +129,34 @@ def auth(token: str) -> dict:
 
 def test_tenant_a_cannot_read_tenant_b_incident(two_tenants):
     c, a, b = two_tenants["client"], two_tenants["a"], two_tenants["b"]
-    resp = c.get(f"/incident/{b['incident_id']}", headers=auth(a["viewer_token"]))
+    resp = c.get(f"/api/incident/{b['incident_id']}", headers=auth(a["viewer_token"]))
     assert resp.status_code == 404
     # Sanity: A really can read its OWN incident with the same token.
-    own = c.get(f"/incident/{a['incident_id']}", headers=auth(a["viewer_token"]))
+    own = c.get(f"/api/incident/{a['incident_id']}", headers=auth(a["viewer_token"]))
     assert own.status_code == 200
 
 
 def test_tenant_a_cannot_read_tenant_b_evidence(two_tenants):
     c, a, b = two_tenants["client"], two_tenants["a"], two_tenants["b"]
-    resp = c.get(f"/incident/{b['incident_id']}/evidence", headers=auth(a["viewer_token"]))
+    resp = c.get(f"/api/incident/{b['incident_id']}/evidence", headers=auth(a["viewer_token"]))
     assert resp.status_code == 404
 
 
 def test_tenant_a_cannot_read_tenant_b_financial_graph(two_tenants):
     c, a, b = two_tenants["client"], two_tenants["a"], two_tenants["b"]
-    resp = c.get(f"/incident/{b['incident_id']}/graph", headers=auth(a["viewer_token"]))
+    resp = c.get(f"/api/incident/{b['incident_id']}/graph", headers=auth(a["viewer_token"]))
     assert resp.status_code == 404
 
 
 def test_tenant_a_cannot_read_tenant_b_exposure(two_tenants):
     c, a, b = two_tenants["client"], two_tenants["a"], two_tenants["b"]
-    resp = c.get(f"/incident/{b['incident_id']}/exposure", headers=auth(a["viewer_token"]))
+    resp = c.get(f"/api/incident/{b['incident_id']}/exposure", headers=auth(a["viewer_token"]))
     assert resp.status_code == 404
 
 
 def test_tenant_a_cannot_read_tenant_b_audit_log(two_tenants):
     c, a, b = two_tenants["client"], two_tenants["a"], two_tenants["b"]
-    resp = c.get(f"/incident/{b['incident_id']}/audit", headers=auth(a["viewer_token"]))
+    resp = c.get(f"/api/incident/{b['incident_id']}/audit", headers=auth(a["viewer_token"]))
     # The audit endpoint doesn't 404 on an unknown incident (it just returns
     # whatever matches the filter) -- the real assertion is that it returns
     # EMPTY for another tenant's incident_id, never Tenant B's actual events.
@@ -166,13 +166,13 @@ def test_tenant_a_cannot_read_tenant_b_audit_log(two_tenants):
 
 def test_tenant_a_cannot_read_tenant_b_recovery_packet(two_tenants):
     c, a, b = two_tenants["client"], two_tenants["a"], two_tenants["b"]
-    resp = c.get(f"/incident/{b['incident_id']}/recovery-packet", headers=auth(a["viewer_token"]))
+    resp = c.get(f"/api/incident/{b['incident_id']}/recovery-packet", headers=auth(a["viewer_token"]))
     assert resp.status_code == 404
 
 
 def test_list_incidents_never_leaks_other_tenant(two_tenants):
     c, a, b = two_tenants["client"], two_tenants["a"], two_tenants["b"]
-    resp = c.get("/incidents", headers=auth(a["viewer_token"]))
+    resp = c.get("/api/incidents", headers=auth(a["viewer_token"]))
     assert resp.status_code == 200
     ids = {i["id"] for i in resp.json()}
     assert a["incident_id"] in ids
@@ -183,7 +183,7 @@ def test_tenant_a_cannot_reset_using_tenant_b_administrator_token_confusion(two_
     """Sanity check the reverse direction too: Tenant B's admin token must
     not somehow let someone act on Tenant A's incident."""
     c, a, b = two_tenants["client"], two_tenants["a"], two_tenants["b"]
-    resp = c.get(f"/incident/{a['incident_id']}", headers=auth(b["viewer_token"]))
+    resp = c.get(f"/api/incident/{a['incident_id']}", headers=auth(b["viewer_token"]))
     assert resp.status_code == 404
 
 

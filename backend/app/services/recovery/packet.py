@@ -89,8 +89,8 @@ def build_recovery_packet(db: Session, incident_id: str) -> dict:
         "case_id": incident.id,
         "merchant_name": merchant.name if merchant else "",
         "incident_summary": (
-            f"{len(transactions)} payouts totaling ₹{sum(t['amount'] for t in transactions):,.0f} "
-            f"moved to {len(beneficiaries)} beneficiary(ies) between "
+            f"{len(transactions)} payout record(s) totaling ₹{sum(t['amount'] for t in transactions):,.0f} "
+            f"were included across {len(beneficiaries)} beneficiary record(s) between "
             f"{incident.window_start.strftime('%H:%M:%S') if incident.window_start else '—'} and "
             f"{incident.window_end.strftime('%H:%M:%S') if incident.window_end else '—'}."
         ),
@@ -109,10 +109,9 @@ def build_recovery_packet(db: Session, incident_id: str) -> dict:
         "evidence_index": evidence_index,
         "outstanding_questions": outstanding_questions,
         "official_next_steps": [
-            "File a report with your bank's fraud/dispute desk using the payout reference IDs above.",
-            "Report to the National Cyber Crime Reporting Portal (cybercrime.gov.in) or dial 1930.",
-            "Notify your Razorpay account manager with this case ID for platform-side review.",
-            "Preserve the original evidence artifacts (do not forward/delete the source messages).",
+            "Take the source-backed case packet to the organization's authorized finance, bank, payment-provider or dispute process.",
+            "Preserve the original evidence artifacts and their hashes; do not alter or delete source material.",
+            "Record the human authorization decision and any external action outside PRIMHORA in the organization's approved case system.",
         ],
         "state": incident.state,
         "dataset_version": incident.dataset_version,
