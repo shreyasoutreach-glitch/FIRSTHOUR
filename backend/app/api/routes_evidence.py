@@ -67,6 +67,14 @@ async def upload_evidence(
     db: Session = Depends(get_tenant_db),
     _user: m.User = Depends(require_permission("INVESTIGATE")),
 ):
+    merchant = db.get(m.Merchant, merchant_id)
+    if merchant is None:
+        raise HTTPException(404, "merchant not found")
+    if incident_id:
+        incident = db.get(m.Incident, incident_id)
+        if incident is None or incident.merchant_id != merchant_id:
+            raise HTTPException(404, "incident not found for merchant")
+
     data = await file.read(settings.max_evidence_bytes + 1)
     if len(data) > settings.max_evidence_bytes:
         raise HTTPException(413, f"Evidence file exceeds the {settings.max_evidence_bytes // (1024 * 1024)} MB limit")
@@ -156,7 +164,9 @@ def analyze_evidence(
             )
             artifact.raw_text = extracted_text
         except Exception as exc:
-            raise HTTPException(502, f"Vision extraction failed: {exc}") from exc
+            artifact.extraction_status = "extraction_failed"
+            db.rollback()
+            raise HTTPException(502, "Vision extraction failed. The evidence remains stored and unverified.") from exc
     else:
         candidates = extract_candidate_claims(artifact.raw_text, artifact.id)
 
