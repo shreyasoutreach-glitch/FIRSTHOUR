@@ -47,7 +47,7 @@ Non-goals: money movement, autonomous fraud decisions, bank-account control, pro
 **Current production verification snapshot: 30 September 2026**
 
 - GitHub Actions: passing.
-- Backend: **146 tests passed** in the latest verified CI run.
+- Backend: **148 tests passed** in the latest verified CI run.
 - Frontend: lint and production build passed in CI.
 - Docker Compose: build/startup and backend /health verification passed in CI.
 - DB-backed API evaluation: **60 labeled regression cases** through the payout CSV API path, with clean/suspicious cases plus malformed-input and replay checks.
