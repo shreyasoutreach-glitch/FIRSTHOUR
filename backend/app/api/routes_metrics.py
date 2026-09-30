@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.core.authz import get_tenant_db
+from app.core.authz import get_tenant_db, require_permission
 from app.evaluation.harness import run_full_evaluation
 from app.models import entities as m
 
@@ -11,7 +11,7 @@ router = APIRouter(tags=["metrics"])
 
 
 @router.get("/metrics")
-def get_metrics(db: Session = Depends(get_tenant_db)):
+def get_metrics(db: Session = Depends(get_tenant_db), _user: m.User = Depends(require_permission("VIEW"))):
     return {
         "merchants": db.query(m.Merchant).count(),
         "payments": db.query(m.Payment).count(),
@@ -27,5 +27,5 @@ def get_metrics(db: Session = Depends(get_tenant_db)):
 
 
 @router.get("/evaluation")
-def get_evaluation():
+def get_evaluation(_user: m.User = Depends(require_permission("VIEW"))):
     return run_full_evaluation()
