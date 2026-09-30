@@ -151,9 +151,7 @@ Every generator function takes its volume from a constant at the top of `seed.py
 produces the full production-scale universe. The trade made here was seed runtime
 (~13 seconds) and ZIP size, not architecture.
 
-The evaluation harness is similarly scaled down from "50–100 hidden DB-backed cases" to
-a fixture-based harness exercising the same pure scoring/resolution/temporal functions —
-see the `scope_note` field in `GET /evaluation`'s response.
+The evaluation system now has two layers: a reproducible fixture benchmark plus a DB-backed API-path suite of 60 labeled cases in `tests/test_db_backed_evaluation.py`. The latter persists records through the customer CSV import route and reports TP/FP/TN/FN plus an explicit failure list in CI. It is a visible regression suite, not a claim of external fraud-detection accuracy.
 
 ## Current implementation boundaries
 

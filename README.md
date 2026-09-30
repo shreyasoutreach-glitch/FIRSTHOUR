@@ -40,7 +40,7 @@ Phase 2 market evidence: complete.
 Phase 3 capstone repositioning: complete.
 Phase 4 real ingestion, read-only enforcement, PDF export, Docker verification and CI: substantially complete, with production identity/provider onboarding still credential-dependent.
 Phase 5 selected-segment UX and vendor-bank-change scenario: implemented; deployed browser verification remains.
-Phase 6 executable precision/recall evaluation: synthetic suite complete; DB-backed API evaluation in progress.
+Phase 6 executable precision/recall evaluation: complete for the current 60-case DB-backed API regression suite; broader incident-type coverage remains.
 
 ## Verification status
 GitHub Actions is the reproducible verification path for backend tests, frontend lint/build, Docker health and synthetic evaluation. Render services are live. Production identity-provider activation and live provider adapters require customer credentials and are not represented as complete.
