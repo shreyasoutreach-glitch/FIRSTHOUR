@@ -8,7 +8,8 @@ services:
     name: first-hour-api
     env: python
     buildCommand: "cd backend && pip install -r requirements.txt"
-    startCommand: "cd backend && alembic upgrade head && python -m seed.seed && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    startCommand: "cd backend && alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -16,15 +17,23 @@ services:
           property: connectionString
       - key: DEMO_MODE
         value: true
+      - key: DEMO_BOOTSTRAP_ON_START
+        value: false
       - key: SEED
         value: 42
       - key: CORS_ORIGINS
-        value: "https://firsthr.vercel.app,https://first-hour-app.vercel.app"
+        value: "https://firsthour-ui-n4cc.onrender.com,https://firsthour-ui.onrender.com"
       - key: GEMINI_API_KEY
         sync: false
       - key: RAZORPAY_KEY_ID
         sync: false
       - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_ACCOUNT_NUMBER
+        sync: false
+      - key: RAZORPAY_MERCHANT_ID
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
         sync: false
       - key: RAZORPAY_MODE
         value: test

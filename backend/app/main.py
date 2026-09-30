@@ -14,6 +14,7 @@ from app.api import (
     routes_import,
     routes_recovery,
     routes_webhooks,
+    routes_workspace,
 )
 from app.core.config import get_settings
 
@@ -56,22 +57,26 @@ app.include_router(routes_import.router, prefix="/api")
 app.include_router(routes_demo.router, prefix="/api")
 app.include_router(routes_recovery.router, prefix="/api")
 app.include_router(routes_webhooks.router, prefix="/api")
+app.include_router(routes_workspace.router, prefix="/api")
 
 
 def _health_payload() -> dict:
-    return {
-        "status": "ok",
-        "service": "primhora",
-        "demo_mode": settings.demo_mode,
-        "integrations": {
-            "razorpayx": bool(
-                settings.razorpay_key_id
-                and settings.razorpay_key_secret
-                and settings.razorpay_account_number
-            ),
-            "gemini_evidence": bool(settings.gemini_api_key),
-        },
-    }
+    return {"status": "ok", "service": "primhora"}
+
+
+@app.middleware("http")
+async def security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=()"
+    response.headers["Content-Security-Policy"] = "default-src 'none'; frame-ancestors 'none'"
+    if request.url.scheme == "https":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    if request.url.path.startswith("/api/"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
 
 
 @app.get("/")

@@ -9,6 +9,8 @@ const BASE = import.meta.env.VITE_API_BASE_URL || "/api";
 
 // Demo credentials are issued by the backend at runtime and are never bundled.
 let DEMO_TOKEN = "";
+let WORKSPACE_TOKEN = "";
+try { WORKSPACE_TOKEN = sessionStorage.getItem("primhora_workspace_token") || ""; } catch {}
 const DEMO_TOKENS: Record<string, string> = {};
 
 export async function getDemoToken(role = "ADMINISTRATOR"): Promise<string> {
@@ -21,12 +23,26 @@ export async function getDemoToken(role = "ADMINISTRATOR"): Promise<string> {
   return data.token;
 }
 
-let getAccessToken: (() => Promise<string>) | null = null;
+let getAccessToken: (() => Promise<string>) | null = WORKSPACE_TOKEN
+  ? async () => WORKSPACE_TOKEN
+  : null;
 export function setAccessTokenProvider(provider: () => Promise<string>) {
   getAccessToken = provider;
 }
 export function hasAccessTokenProvider() {
   return Boolean(getAccessToken);
+}
+
+export function setWorkspaceToken(token: string) {
+  WORKSPACE_TOKEN = token;
+  getAccessToken = async () => WORKSPACE_TOKEN;
+  try { sessionStorage.setItem("primhora_workspace_token", token); } catch {}
+}
+
+export function clearWorkspaceToken() {
+  WORKSPACE_TOKEN = "";
+  getAccessToken = null;
+  try { sessionStorage.removeItem("primhora_workspace_token"); } catch {}
 }
 
 export class APIError extends Error {
@@ -81,6 +97,12 @@ async function requestAs<T>(token: string, path: string, options?: RequestInit):
 }
 
 export const api = {
+  getWorkspace: () => request<any>("/workspace"),
+  createWorkspace: (name: string, industry: string) =>
+    request<any>("/workspace", {
+      method: "POST",
+      body: JSON.stringify({ name, industry }),
+    }),
   getMerchantConnection: (merchantId: string) =>
     request<any>(`/merchant/${merchantId}/connection`),
   getMerchantBaseline: (merchantId: string) =>

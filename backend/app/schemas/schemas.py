@@ -150,3 +150,18 @@ class ExposureResponse(BaseModel):
     attempted: ExposureCategory
     related: RelatedExposure
     blast_radius: BlastRadius
+
+
+class WorkspaceCreateRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=200)
+    industry: str = Field(default="", max_length=120)
+
+
+class WorkspaceResponse(BaseModel):
+    tenant_id: str
+    name: str
+    industry: str = ""
+    user_id: str
+    role: str
+    provisioning_mode: str
+    token: str | None = None
