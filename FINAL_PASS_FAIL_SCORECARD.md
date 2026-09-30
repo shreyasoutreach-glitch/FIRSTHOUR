@@ -11,6 +11,7 @@ This scorecard records verification status rather than product claims.
 - Tenant-scoped session: implemented and covered by API/DB isolation tests.
 - RBAC: implemented and covered by recovery-command tests.
 - Evidence hashing/MIME validation: implemented.
+- Evidence bytes: persisted in the primary database for new uploads, with filesystem fallback for legacy artifacts.
 - Evidence upload merchant/incident ownership validation: implemented.
 - Deterministic evidence verification: implemented.
 - Application security headers: implemented.
@@ -30,7 +31,7 @@ This scorecard records verification status rather than product claims.
 | Read-only financial execution boundary | IMPLEMENTED, TESTED |
 | Generic multi-source adapter | PARTIAL |
 | PDF packet export | IMPLEMENTED |
-| Durable production evidence storage | NOT YET COMPLETE |
+| Durable production evidence storage | IMPLEMENTED, backup/retention policy remains |
 | Distributed rate limiting / abuse controls | NOT YET COMPLETE |
 | Production observability and incident runbook | NOT YET COMPLETE |
 | Docker Compose execution in CI | PASS |
