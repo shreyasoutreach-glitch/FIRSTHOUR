@@ -114,6 +114,7 @@ async def upload_evidence(
         sha256=digest,
         source_label=source_label,
         raw_text=raw_text,
+        content_bytes=data,
         extraction_status=extraction_status,
     )
     db.add(artifact)
@@ -157,8 +158,11 @@ def analyze_evidence(
             )
 
         try:
-            with open(_stored_path(artifact, _user.tenant_id), "rb") as handle:
-                data = handle.read()
+            if artifact.content_bytes is not None:
+                data = artifact.content_bytes
+            else:
+                with open(_stored_path(artifact, _user.tenant_id), "rb") as handle:
+                    data = handle.read()
             extracted_text, candidates = _binary_evidence_extraction(
                 data, artifact.mime_type, artifact.id
             )
