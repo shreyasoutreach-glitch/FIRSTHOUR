@@ -18,7 +18,7 @@ Recovery commands are simulations and evidence/packet preparation only. There is
 Text extraction is deterministic in the current no-key path. Gemini multimodal extraction is available behind an explicit credential and its output remains candidate evidence until deterministic verification.
 
 ## Evidence storage
-Uploaded evidence currently lives on the application filesystem. A production deployment needs durable object storage or a verified persistent disk plus retention, backup and restore procedures.
+New uploads are persisted in the primary database as bytes, so the application does not depend on ephemeral service-local storage for the authoritative artifact. A production deployment still needs explicit database backup/restore testing, retention controls and a storage-size policy; object storage remains preferable at larger evidence volumes.
 
 ## Integrations
 Generic payout CSV ingestion is implemented and read-only. RazorpayX live sync remains credential-dependent. Additional bank, ERP, ledger and payment-provider adapters are not yet implemented.
