@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.core.database import get_db
+from app.core.database import Base, get_db
 from app.main import app
 from app.models import entities as m
 from app.core.tenancy import TenantScopedSession
@@ -13,7 +13,7 @@ from app.core.tenancy import TenantScopedSession
 
 def test_workspace_creation_persists_and_returns_scoped_token(tmp_path):
     engine = create_engine(f"sqlite:///{tmp_path / 'workspace.db'}", connect_args={"check_same_thread": False})
-    m.Base.metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
     SessionLocal = sessionmaker(bind=engine, class_=TenantScopedSession)
     db = SessionLocal()
     db.set_tenant(None)
