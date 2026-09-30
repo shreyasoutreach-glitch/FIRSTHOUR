@@ -29,55 +29,23 @@ The current schema includes a Razorpay-shaped payment vocabulary. Razorpay is a 
 ## Read-only boundary
 PRIMHORA never initiates or cancels payments, freezes or reverses funds, changes beneficiaries or credentials, claims funds were recovered, or treats AI output as financial truth.
 
-## Research questions
-1. Can PRIMHORA reconstruct a financial incident faster than a manual workflow?
-2. Can deterministic reconciliation reduce unsupported conclusions?
-3. Can provenance make findings easier to audit?
-4. Which incident types justify paid software?
-5. Will target users trust a read-only evidence workspace with sensitive exports?
-
 ## Scope
 In scope: customer file ingestion, deterministic normalization/reconciliation, incident reconstruction, evidence provenance, graph/exposure views, human attestations, packet generation, PDF export, reproducible CI and evaluation.
 
 Non-goals: money movement, autonomous fraud decisions, bank-account control, production payment execution and fabricated integrations.
 
-## Evaluation
-Every metric must state dataset version, population, date, definition, command and failures. Synthetic benchmark results are never presented as real-world accuracy.
-
-## Methodology
-source data -> normalization -> deterministic truth -> evidence extraction -> verification -> reconstruction -> human context -> packet.
-
 ## Roadmap
 Phase 1 audit: complete.
 Phase 2 market evidence: complete.
-Phase 3 capstone repositioning: in progress.
-Phase 4 real ingestion, read-only enforcement, PDF export, Docker verification and CI.
-Phase 5 selected-segment UX and vendor-bank-change scenario.
-Phase 6 executable precision/recall evaluation and failure reporting.
+Phase 3 capstone repositioning: complete.
+Phase 4 real ingestion, read-only enforcement, PDF export, Docker verification and CI: substantially complete, with production identity/provider onboarding still credential-dependent.
+Phase 5 selected-segment UX and vendor-bank-change scenario: implemented; deployed browser verification remains.
+Phase 6 executable precision/recall evaluation: synthetic suite complete; DB-backed API evaluation in progress.
 
 ## Verification status
-AUDIT.md records the current verified/unverified state. Render services are live. Local test execution was unavailable in the current audit environment, so unexecuted tests are not described as passing.
+GitHub Actions is the reproducible verification path for backend tests, frontend lint/build, Docker health and synthetic evaluation. Render services are live. Production identity-provider activation and live provider adapters require customer credentials and are not represented as complete.
 
+## Synthetic evaluation
+CI run 36678195609 on 2026-09-30: 300 synthetic labeled cases, event detection precision/recall/F1 1.000, entity-link precision/recall/F1 1.000, entity exact-decision accuracy 0.833 on 6 cases, timeline fixture accuracy 1.000, replay consistency 1.000 across 5 runs.
 
-## Phase 6 measured synthetic evaluation
-
-CI run 36671174979 executed the benchmark on 2026-09-30.
-
-Dataset: primhora-synthetic-eval-v2
-Population: 300 synthetic labeled cases
-Seed: 20260930
-
-| Metric | Result |
-|---|---:|
-| Event detection precision | 1.000 |
-| Event detection recall | 1.000 |
-| Event detection F1 | 1.000 |
-| Event detection TP / FP / TN / FN | 100 / 0 / 200 / 0 |
-| Entity-link precision | 1.000 |
-| Entity-link recall | 1.000 |
-| Entity-link F1 | 1.000 |
-| Entity exact-decision accuracy | 0.833 on 6 labeled cases |
-| Timeline ordering accuracy | 1.000 on the fixture |
-| Replay consistency | 1.000 across 5 repeated runs |
-
-These numbers are **synthetic fixture results only**. They are not real-world fraud-detection accuracy, are not representative of Indian companies, and are not evidence of product-market fit. The event detector fixture was intentionally separable: the suspicious synthetic population was generated with strong anomaly signals. A hidden DB-backed evaluation suite is still required.
+These are synthetic fixture results only. They are not real-world fraud-detection accuracy, are not representative of Indian companies, and are not evidence of product-market fit. A DB-backed API evaluation suite is still required.

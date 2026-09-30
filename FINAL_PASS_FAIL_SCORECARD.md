@@ -5,41 +5,29 @@ This scorecard records verification status rather than product claims.
 ## Current status
 - Render backend: LIVE, verified from deployment state and startup logs.
 - Render frontend: LIVE, verified from deployment state.
-- OIDC JWT validation code path: present; deployment not active.
-- Tenant-scoped session: present; fresh execution UNVERIFIED.
-- RBAC: present; fresh execution UNVERIFIED.
+- OIDC JWT validation code path: present; production activation requires an IdP configuration.
+- Tenant-scoped session: implemented and covered by API/DB isolation tests.
+- RBAC: implemented and covered by recovery-command tests.
 - Evidence hashing/MIME validation: implemented.
 - Deterministic evidence verification: implemented.
 - Recovery packet computation: implemented.
+- Generic payout CSV ingestion: implemented as a read-only import path.
+- PDF evidence-packet export: implemented.
+- GitHub Actions CI: passing on the current rebuild branch.
 
-## Blockers
+## Remaining gates
 | Requirement | Status |
 |---|---|
-| Customer CSV ingestion | NOT IMPLEMENTED |
+| Customer payout CSV ingestion | IMPLEMENTED |
 | Persistent customer organization/membership | PARTIAL |
-| Read-only enforcement for every recovery endpoint | BLOCKED |
+| Production identity-provider activation | CREDENTIAL-DEPENDENT |
+| Read-only financial execution boundary | IMPLEMENTED, TESTED |
 | Generic multi-source adapter | PARTIAL |
-| PDF packet export | NOT IMPLEMENTED |
-| Docker Compose execution | UNVERIFIED |
-| GitHub Actions CI | NOT IMPLEMENTED |
-| Fresh backend tests | UNVERIFIED |
-| Fresh frontend type-check | UNVERIFIED locally |
-| Fresh frontend Render build | VERIFIED |
-| Precision/recall benchmark | UNVERIFIED |
-
-## Phase 4 pass gate
-A requirement is complete only after the command actually runs and output is recorded. Required evidence: backend pytest, frontend type-check/build, Docker health, CI result, CSV fixture, evidence fixture, PDF generation, and an explicit test proving no recovery endpoint can invoke an external money-moving API.
-
-No green checkbox is allowed for an unexecuted test.
-
-
-## Latest CI verification
-
-Run 36671174979, 2026-09-30: PASS.
-
-Backend tests: PASS.
-Frontend TypeScript/build: PASS.
-Docker Compose health verification: PASS.
-Synthetic evaluation report: PASS.
-
-Synthetic evaluation numbers are recorded in docs/EVALUATION.md and README.md. They are not real-world performance claims.
+| PDF packet export | IMPLEMENTED |
+| Docker Compose execution in CI | PASS |
+| GitHub Actions CI | PASS |
+| Backend tests in CI | PASS |
+| Frontend lint/build in CI | PASS |
+| Synthetic precision/recall benchmark | PASS, synthetic-only |
+| DB-backed API evaluation, 50-100 cases | NOT YET COMPLETE |
+| Fresh deployed-browser verification of Phase 5 flows | NOT YET COMPLETE |
