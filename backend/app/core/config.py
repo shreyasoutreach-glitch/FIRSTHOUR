@@ -20,8 +20,15 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     gemini_api_key: str = ""
     cors_origins: str = "http://localhost:5173"
+
+    # Production OIDC settings. The backend validates the signed access token
+    # itself. No client secret is accepted here because the browser is a public
+    # OAuth client and must use Authorization Code + PKCE.
     auth_provider_domain: str = ""
+    auth_provider_issuer: str = ""
     auth_provider_audience: str = ""
+    auth_provider_jwks_url: str = ""
+
     max_evidence_bytes: int = 10 * 1024 * 1024
 
     razorpay_key_id: str = ""
@@ -33,6 +40,22 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def oidc_issuer(self) -> str:
+        if self.auth_provider_issuer:
+            return self.auth_provider_issuer.rstrip("/") + "/"
+        if self.auth_provider_domain:
+            return f"https://{self.auth_provider_domain.rstrip('/')}/"
+        return ""
+
+    @property
+    def oidc_jwks_url(self) -> str:
+        if self.auth_provider_jwks_url:
+            return self.auth_provider_jwks_url
+        if self.auth_provider_domain:
+            return f"https://{self.auth_provider_domain.rstrip('/')}/.well-known/jwks.json"
+        return ""
 
 
 @lru_cache
