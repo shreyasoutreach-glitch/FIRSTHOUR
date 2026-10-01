@@ -16,13 +16,21 @@ services:
           name: first-hour-db
           property: connectionString
       - key: DEMO_MODE
-        value: true
+        value: false
       - key: DEMO_BOOTSTRAP_ON_START
         value: false
       - key: SEED
         value: 42
       - key: CORS_ORIGINS
-        value: "https://firsthour-ui-n4cc.onrender.com"
+        sync: false
+      - key: AUTH_PROVIDER_DOMAIN
+        sync: false
+      - key: AUTH_PROVIDER_ISSUER
+        sync: false
+      - key: AUTH_PROVIDER_AUDIENCE
+        sync: false
+      - key: AUTH_PROVIDER_JWKS_URL
+        sync: false
       - key: GEMINI_API_KEY
         sync: false
       - key: RAZORPAY_KEY_ID
