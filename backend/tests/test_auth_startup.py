@@ -16,4 +16,4 @@ def test_startup_fails_without_production_auth():
     )
     
     assert result.returncode != 0
-    assert "DEMO_MODE is false but no production authentication provider is configured" in result.stderr
+    assert "DEMO_MODE is false but no complete production authentication provider configuration is present" in result.stderr
