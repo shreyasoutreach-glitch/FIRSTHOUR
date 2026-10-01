@@ -1,70 +1,57 @@
-import React, { useEffect, useState } from "react";
+import React,{useEffect,useState} from "react";
+import { ArrowUpRight, Database, FileSearch, ShieldCheck, Users, Zap, AlertTriangle, CheckCircle2, Clock3 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Database, Users, ShieldCheck, Plus, Building2, Check } from "lucide-react";
 import { api, setWorkspaceToken } from "../lib/api";
 import { authRequired } from "../lib/auth";
 
 export default function SaaS(){
  const production=authRequired();
- const [showForm,setShowForm]=useState(false);
- const [name,setName]=useState("");
- const [industry,setIndustry]=useState("");
+ const [name,setName]=useState(""); const [industry,setIndustry]=useState("");
  const [created,setCreated]=useState(()=>sessionStorage.getItem("primhora_workspace")||"");
- const [loading,setLoading]=useState(false);
- const [error,setError]=useState("");
+ const [showForm,setShowForm]=useState(false); const [loading,setLoading]=useState(false); const [error,setError]=useState("");
+ const [incidents,setIncidents]=useState<any[]>([]);
+ const [refreshing,setRefreshing]=useState(false);
 
- useEffect(()=>{
-   if(!production || created) return;
-   let active=true;
-   api.getWorkspace().then((workspace)=>{
-     if(!active) return;
-     sessionStorage.setItem("primhora_workspace",workspace.name);
-     sessionStorage.setItem("primhora_workspace_id",workspace.tenant_id);
-     sessionStorage.setItem("primhora_workspace_industry",workspace.industry || "");
-     setCreated(workspace.name);
-   }).catch((err:any)=>{
-     if(active) setError(err?.message || "Your identity is authenticated but no Primhora workspace is provisioned yet.");
-   });
-   return ()=>{active=false};
- },[production,created]);
+ useEffect(()=>{ if(!production||created)return; let active=true; api.getWorkspace().then(w=>{if(!active)return;sessionStorage.setItem("primhora_workspace",w.name);sessionStorage.setItem("primhora_workspace_id",w.tenant_id);sessionStorage.setItem("primhora_workspace_industry",w.industry||"");setCreated(w.name)}).catch(e=>active&&setError(e?.message||"Workspace unavailable"));return()=>{active=false}},[production,created]);
+ useEffect(()=>{if(!created)return; let active=true; setRefreshing(true); api.listIncidents().then(x=>active&&setIncidents(x||[])).catch(()=>{}).finally(()=>active&&setRefreshing(false)); return()=>{active=false}},[created]);
 
- const create=async()=>{
-   const value=name.trim();
-   if(!value)return;
-   setLoading(true); setError("");
-   try {
-     const workspace=await api.createWorkspace(value, industry.trim());
-     if (workspace.token) setWorkspaceToken(workspace.token);
-     sessionStorage.setItem("primhora_workspace",workspace.name);
-     sessionStorage.setItem("primhora_workspace_id",workspace.tenant_id);
-     sessionStorage.setItem("primhora_workspace_industry",workspace.industry || industry.trim());
-     setCreated(workspace.name); setShowForm(false);
-   } catch (err:any) {
-     setError(err?.message || "Could not create workspace.");
-   } finally { setLoading(false); }
- };
+ const create=async()=>{const value=name.trim();if(!value)return;setLoading(true);setError("");try{const w=await api.createWorkspace(value,industry.trim());if(w.token)setWorkspaceToken(w.token);sessionStorage.setItem("primhora_workspace",w.name);sessionStorage.setItem("primhora_workspace_id",w.tenant_id);sessionStorage.setItem("primhora_workspace_industry",w.industry||industry.trim());setCreated(w.name);setShowForm(false)}catch(e:any){setError(e?.message||"Could not create workspace")}finally{setLoading(false)}};
 
- if(production && !created) return <div className="min-h-[calc(100vh-64px)] bg-graphite text-text_primary"><div className="max-w-canvas mx-auto px-6 sm:px-10 py-10"><div className="max-w-xl rounded-2xl border border-surface_border bg-surface p-7"><p className="label-eyebrow text-text_primary/35">WORKSPACE · ACCESS</p><h1 className="font-display text-4xl mt-3">Identity verified. Workspace pending.</h1><p className="text-sm leading-relaxed text-text_primary/50 mt-4">Your sign-in is valid, but this identity has not been provisioned into a Primhora workspace yet.</p>{error&&<p className="text-xs text-amber mt-5">{error}</p>}<p className="text-xs text-text_primary/35 mt-5">For the MVP, an administrator provisions the OIDC subject and assigns the workspace role before customer data is exposed.</p><Link to="/demo/setup" className="inline-flex items-center gap-2 mt-7 rounded-lg border border-surface_border px-4 py-2.5 text-sm">Open synthetic demo <ArrowRight size={14}/></Link></div></div></div>;
+ if(production&&!created) return <EmptyState error={error} onDemo={()=>location.assign("/demo/setup")}/>;
+ if(!created) return <Setup created={created} showForm={showForm} setShowForm={setShowForm} name={name} setName={setName} industry={industry} setIndustry={setIndustry} create={create} loading={loading} error={error}/>;
 
- if(created) return <div className="min-h-[calc(100vh-64px)] bg-graphite text-text_primary"><div className="max-w-canvas mx-auto px-6 sm:px-10 py-10">
-   <p className="label-eyebrow text-text_primary/35 mb-3">WORKSPACE · {created.toUpperCase()}</p>
-   <div className="max-w-3xl"><h1 className="font-display text-5xl tracking-tight">Workspace ready.</h1><p className="text-base leading-relaxed text-text_primary/50 mt-4">Your organization is persisted in the Primhora backend. Connect an authorized source to begin populating the workspace.</p></div>
-   <div className="mt-10 grid md:grid-cols-3 gap-4">
-    <Link to="/app/data-sources" className="rounded-2xl border border-surface_border bg-surface p-6 hover:bg-surface_raised transition"><Database size={18}/><p className="font-display text-xl mt-8">Connect data</p><p className="text-xs text-text_primary/40 mt-2">Add an authorized payment, bank, ledger or file source.</p><span className="inline-flex items-center gap-2 mt-5 text-xs">Continue <ArrowRight size={13}/></span></Link>
-    <Link to="/app/team" className="rounded-2xl border border-surface_border bg-surface p-6 hover:bg-surface_raised transition"><Users size={18}/><p className="font-display text-xl mt-8">Invite team</p><p className="text-xs text-text_primary/40 mt-2">Prepare roles and separation of duties.</p></Link>
-    <div className="rounded-2xl border border-surface_border bg-surface p-6"><ShieldCheck size={18}/><p className="font-display text-xl mt-8">Incidents</p><p className="text-xs text-text_primary/40 mt-8">No incidents yet. They appear when connected data creates a case.</p></div>
+ const open=incidents.filter(i=>String(i.state||"").toUpperCase()!=="CLOSED");
+ const critical=open.filter(i=>/critical|high/i.test(String(i.severity||i.priority||""))).length;
+ return <div className="min-h-[calc(100vh-72px)] bg-graphite">
+  <div className="relative overflow-hidden border-b border-surface_border bg-grid">
+   <div className="pointer-events-none absolute -right-24 -top-40 h-96 w-96 rounded-full bg-white/[0.035] blur-3xl"/>
+   <div className="mx-auto max-w-[1500px] px-5 py-9 sm:px-8">
+    <div className="flex flex-wrap items-start justify-between gap-6">
+     <div><div className="flex items-center gap-2"><span className="status-dot bg-emerald"/><span className="label-eyebrow text-emerald/80">CONTROL PLANE ONLINE</span></div><h1 className="mt-3 font-display text-4xl tracking-tight sm:text-5xl text-balance">Good morning. Here's the board.</h1><p className="mt-3 max-w-2xl text-sm leading-relaxed text-text_primary/45">PRIMHORA turns fragmented payment evidence into a traceable incident workspace. It never moves money and never promotes an AI guess to financial truth.</p></div>
+     <div className="flex gap-2"><Link to="/app/data-sources" className="btn-secondary"><Database size={15}/> Data source</Link><Link to="/app/incidents" className="btn-primary"><FileSearch size={15}/> Open incidents</Link></div>
+    </div>
+    <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <Metric label="Open incidents" value={open.length} sub={critical?critical+" high-priority":"No high-priority cases"} icon={AlertTriangle} danger={critical>0}/>
+      <Metric label="Evidence posture" value={open.length?"ACTIVE":"CLEAR"} sub={open.length?"Cases require review":"No active investigations"} icon={ShieldCheck}/>
+      <Metric label="Connected sources" value={sessionStorage.getItem("primhora_workspace")?"1":"0"} sub="CSV import available" icon={Database}/>
+      <Metric label="Control mode" value="READ-ONLY" sub="Execution blocked by design" icon={Zap}/>
+    </div>
    </div>
- </div></div>;
-
- return <div className="min-h-[calc(100vh-64px)] bg-graphite text-text_primary"><div className="max-w-canvas mx-auto px-6 sm:px-10 py-10">
-  <div className="max-w-3xl"><p className="label-eyebrow text-text_primary/35 mb-3">WORKSPACE · FIRST RUN</p><h1 className="font-display text-5xl tracking-tight">Your financial operations workspace.</h1><p className="text-base leading-relaxed text-text_primary/50 mt-4 max-w-2xl">This is your control plane, not a pre-filled demo. Set up your organization and connect authorized financial data before Primhora begins creating incidents.</p></div>
-  <div className="mt-10 grid lg:grid-cols-[1.25fr_.75fr] gap-5">
-   <section className="rounded-2xl border border-surface_border bg-surface p-7">
-    <div className="flex items-start justify-between gap-6"><div><p className="label-eyebrow text-text_primary/35">GET STARTED</p><h2 className="font-display text-2xl mt-2">Build your workspace</h2></div><span className="rounded-full border border-amber/25 text-amber px-3 py-1.5 text-[10px] uppercase tracking-wider">Demo mode</span></div>
-    <div className="mt-8 space-y-3">{[["01","Set up your organization","Company identity, operating context and workspace ownership."],["02","Connect your data","Authorized payment, bank, ledger or file sources."],["03","Invite your team","Assign analyst, investigator and approver responsibilities."],["04","Start monitoring","Incidents appear only when your connected data creates them."]].map(([n,t,c],i)=><div key={n} className="flex gap-4 rounded-xl border border-surface_border p-4"><span className="font-ui text-xs text-text_primary/30 pt-1">{n}</span><div><p className="font-medium">{t}</p><p className="text-xs text-text_primary/40 mt-1">{c}</p></div>{i===0&&<span className="ml-auto text-xs text-text_primary/35">Start here</span>}</div>)}</div>
-    {showForm ? <div className="mt-7 rounded-xl border border-surface_border p-5"><p className="font-medium">Create organization</p><p className="text-xs text-text_primary/40 mt-1">Creates a persistent Primhora workspace and owner account. No financial provider is connected yet.</p><label className="block text-xs text-text_primary/50 mt-5">Organization name<input autoFocus value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&create()} placeholder="e.g. Northstar Finance" className="mt-2 w-full rounded-lg border border-surface_border bg-graphite px-3 py-3 text-sm outline-none focus:border-text_primary/40"/></label><label className="block text-xs text-text_primary/50 mt-4">Industry <span className="text-text_primary/25">(optional)</span><input value={industry} onChange={e=>setIndustry(e.target.value)} placeholder="e.g. Fintech" className="mt-2 w-full rounded-lg border border-surface_border bg-graphite px-3 py-3 text-sm outline-none focus:border-text_primary/40"/></label><div className="flex gap-2 mt-5"><button onClick={create} disabled={!name.trim() || loading} className="inline-flex items-center gap-2 rounded-lg bg-text_primary text-graphite px-4 py-2.5 text-sm font-medium disabled:opacity-30"><Check size={14}/> {loading ? "Creating…" : "Create workspace"}</button><button onClick={()=>setShowForm(false)} className="px-4 py-2.5 text-sm text-text_primary/50">Cancel</button></div>{error && <p className="text-xs text-red-400 mt-4">{error}</p>}</div> : <button onClick={()=>setShowForm(true)} className="mt-7 inline-flex items-center gap-2 rounded-xl bg-text_primary text-graphite px-5 py-3 text-sm font-medium hover:opacity-90 transition"><Plus size={15}/> Create organization <ArrowRight size={14}/></button>}
-   </section>
-   <aside className="space-y-3"><div className="rounded-2xl border border-surface_border bg-surface p-6"><Building2 size={18}/><p className="font-display text-xl mt-7">No organization yet</p><p className="text-xs leading-relaxed text-text_primary/45 mt-2">A new Primhora workspace starts empty. There are no clients, incidents or financial records here until you add them.</p></div><Link to="/demo/setup" className="block rounded-2xl border border-amber/20 bg-amber/[0.04] p-6 hover:bg-amber/[0.07] transition"><ShieldCheck size={18} className="text-amber"/><p className="font-display text-xl mt-7">Want to see it working?</p><p className="text-xs leading-relaxed text-text_primary/45 mt-2">Open the synthetic demo and investigate a complete incident without connecting anything.</p><span className="inline-flex items-center gap-2 text-xs mt-5">Explore demo <ArrowRight size={13}/></span></Link></aside>
   </div>
- </div></div>;
+  <div className="mx-auto max-w-[1500px] px-5 py-7 sm:px-8">
+   <div className="grid gap-5 xl:grid-cols-[1.45fr_.75fr]">
+    <section className="panel metric-glow overflow-hidden">
+      <div className="flex items-center justify-between border-b border-surface_border px-6 py-5"><div><p className="label-eyebrow text-text_primary/25">LIVE QUEUE</p><h2 className="mt-1 font-display text-xl">Investigation queue</h2></div><Link to="/app/incidents" className="text-xs text-text_primary/40 hover:text-text_primary">View all <ArrowUpRight size={13} className="inline"/></Link></div>
+      {refreshing?<div className="p-8 text-sm text-text_primary/35">Syncing workspace…</div>:open.length===0?<div className="p-10 text-center"><CheckCircle2 size={20} className="mx-auto text-emerald/80"/><h3 className="mt-4 font-display text-2xl">No active incidents</h3><p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-text_primary/40">Connect an authorized CSV source to create a deterministic investigation trail. Synthetic demo data stays outside this workspace.</p><Link to="/app/data-sources" className="btn-secondary mt-6"><Database size={14}/> Connect data</Link></div>:<div className="divide-y divide-surface_border">{open.slice(0,5).map((i:any)=><Link key={i.id} to={`/app/incidents/${i.id}`} className="flex items-center justify-between gap-5 px-6 py-5 hover:bg-white/[0.025] transition"><div className="flex items-center gap-4 min-w-0"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-vermillion/20 bg-vermillion/[0.04]"><AlertTriangle size={15} className="text-vermillion/80"/></span><div className="min-w-0"><p className="label-eyebrow text-text_primary/25">{i.id} · {i.state||"OPEN"}</p><p className="mt-1 truncate font-medium">{i.scenario||"Financial incident"}</p><p className="mt-1 truncate text-xs text-text_primary/35">{i.merchant_name||"Unknown merchant"}</p></div></div><div className="hidden items-center gap-2 sm:flex text-xs text-text_primary/35"><Clock3 size={13}/> Review required <ArrowUpRight size={13}/></div></Link>)}</div>}
+    </section>
+    <aside className="space-y-5">
+      <div className="panel p-6"><p className="label-eyebrow text-text_primary/25">OPERATIONAL CONTRACT</p><h2 className="mt-2 font-display text-2xl">Truth has a chain.</h2><div className="mt-6 space-y-4">{[["01","Source record","Deterministic financial fact"],["02","Evidence","Claim + provenance"],["03","Human","Attestation + decision"]].map(([n,t,c])=><div key={n} className="flex gap-3"><span className="font-label text-[10px] text-text_primary/20 pt-1">{n}</span><div><p className="text-sm">{t}</p><p className="text-xs text-text_primary/35 mt-1">{c}</p></div></div>)}</div></div>
+      <div className="panel p-6"><div className="flex items-center gap-2"><Users size={16}/><p className="font-medium">Separation of duties</p></div><p className="text-xs leading-relaxed text-text_primary/40 mt-3">Analyst, investigator and approver roles are modeled separately. Recovery remains a human-governed workflow.</p><Link to="/app/team" className="inline-flex items-center gap-2 mt-5 text-xs text-text_primary/55 hover:text-text_primary">Manage controls <ArrowUpRight size={13}/></Link></div>
+    </aside>
+   </div>
+  </div>
+ </div>;
 }
+function Metric({label,value,sub,icon:Icon,danger}:{label:string,value:string|number,sub:string,icon:any,danger?:boolean}){return <div className="panel p-5 metric-glow"><div className="flex items-center justify-between"><span className="label-eyebrow text-text_primary/25">{label}</span><Icon size={15} className={danger?"text-vermillion/80":"text-text_primary/25"}/></div><p className={`mt-5 font-display text-3xl ${danger?"text-vermillion":"text-text_primary"}`}>{value}</p><p className="mt-1 text-[11px] text-text_primary/30">{sub}</p></div>}
+function EmptyState({error,onDemo}:{error:string,onDemo:()=>void}){return <div className="min-h-[calc(100vh-72px)] bg-grid"><div className="mx-auto max-w-[1100px] px-5 py-20 sm:px-8"><div className="max-w-2xl panel p-8 sm:p-10"><div className="flex h-10 w-10 items-center justify-center rounded-xl border border-amber/20 bg-amber/[0.04]"><ShieldCheck size={17} className="text-amber/80"/></div><p className="label-eyebrow text-text_primary/25 mt-7">IDENTITY / WORKSPACE</p><h1 className="font-display text-4xl mt-2">Identity verified. Workspace pending.</h1><p className="text-sm leading-relaxed text-text_primary/45 mt-4">Your production identity is valid, but no organization membership has been provisioned for this account yet.</p>{error&&<p className="text-xs text-amber/80 mt-5">{error}</p>}<button onClick={onDemo} className="btn-secondary mt-7">Open synthetic environment <ArrowUpRight size={14}/></button></div></div></div>}
+function Setup({showForm,setShowForm,name,setName,industry,setIndustry,create,loading,error}:{created:string,showForm:boolean,setShowForm:(v:boolean)=>void,name:string,setName:(v:string)=>void,industry:string,setIndustry:(v:string)=>void,create:()=>void,loading:boolean,error:string}){return <div className="min-h-[calc(100vh-72px)] bg-grid"><div className="mx-auto max-w-[1100px] px-5 py-16 sm:px-8"><div className="max-w-3xl"><p className="label-eyebrow text-text_primary/25">FIRST RUN</p><h1 className="mt-3 font-display text-5xl tracking-tight">Build your control plane.</h1><p className="mt-4 max-w-2xl text-base leading-relaxed text-text_primary/45">Start empty. Connect authorized financial data. Then let PRIMHORA build an evidence-backed case when something breaks.</p></div><div className="mt-10 grid gap-5 lg:grid-cols-[1.2fr_.8fr]"><div className="panel p-7"><div className="grid gap-3">{[["01","Establish workspace","Persistent organization + ownership"],["02","Connect evidence","CSV import with server validation"],["03","Investigate","Timeline, graph, exposure and evidence"],["04","Decide","Human attestation and recovery packet"]].map(([n,t,c])=><div key={n} className="flex items-center gap-4 rounded-xl border border-surface_border p-4"><span className="font-label text-[10px] text-text_primary/20">{n}</span><div><p className="text-sm">{t}</p><p className="text-xs text-text_primary/35 mt-1">{c}</p></div><CheckCircle2 size={15} className="ml-auto text-text_primary/15"/></div>)}</div>{showForm?<div className="mt-6 rounded-2xl border border-surface_border bg-graphite p-5"><label className="block text-xs text-text_primary/45">Organization<input value={name} onChange={e=>setName(e.target.value)} className="mt-2 w-full rounded-xl border border-surface_border bg-surface px-3 py-3 text-sm focus-ring" placeholder="Northstar Finance"/></label><label className="mt-4 block text-xs text-text_primary/45">Industry <span className="text-text_primary/20">optional</span><input value={industry} onChange={e=>setIndustry(e.target.value)} className="mt-2 w-full rounded-xl border border-surface_border bg-surface px-3 py-3 text-sm focus-ring" placeholder="Fintech / manufacturing / services"/></label><div className="mt-5 flex gap-2"><button onClick={create} disabled={!name.trim()||loading} className="btn-primary">{loading?"Creating…":"Create workspace"}</button><button onClick={()=>setShowForm(false)} className="btn-secondary">Cancel</button></div>{error&&<p className="mt-4 text-xs text-vermillion/80">{error}</p>}</div>:<button onClick={()=>setShowForm(true)} className="btn-primary mt-6"><Zap size={14}/> Initialize workspace</button>}</div><div className="panel p-7"><p className="label-eyebrow text-text_primary/25">DESIGN PRINCIPLE</p><h2 className="mt-3 font-display text-2xl">AI can interpret. It cannot declare truth.</h2><p className="mt-3 text-sm leading-relaxed text-text_primary/40">Amounts, beneficiaries, timestamps and exposure are grounded in deterministic records. AI extraction remains candidate evidence until verified.</p><div className="mt-7 border-t border-surface_border pt-5"><p className="label-eyebrow text-text_primary/20">SAFE BY DEFAULT</p><p className="mt-2 text-xs leading-relaxed text-text_primary/35">PRIMHORA is read-only. It does not initiate, reverse, freeze or recover money.</p></div></div></div></div></div>}
