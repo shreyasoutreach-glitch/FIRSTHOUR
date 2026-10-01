@@ -6,7 +6,7 @@ import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.core.authz import get_system_db, require_permission
+from app.core.authz import get_system_db, get_tenant_db, require_permission
 from app.core.config import get_settings
 from app.models import entities as m
 from app.schemas.schemas import WorkspaceCreateRequest, WorkspaceResponse
@@ -21,7 +21,7 @@ def _new_id(prefix: str) -> str:
 
 @router.get("/workspace", response_model=WorkspaceResponse)
 def get_workspace(
-    db: Session = Depends(get_system_db),
+    db: Session = Depends(get_tenant_db),
     user: m.User = Depends(require_permission("VIEW")),
 ):
     tenant = db.get(m.Tenant, user.tenant_id)
