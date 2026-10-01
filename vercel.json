@@ -5,7 +5,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://first-hour-api.onrender.com/$1"
+      "destination": "https://firsthour-inei.onrender.com/$1"
     },
     {
       "source": "/(.*)",
