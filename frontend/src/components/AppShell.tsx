@@ -1,39 +1,64 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Activity, BarChart3, Database, FileSearch, LayoutDashboard, Menu, ShieldCheck, Users, X, Zap } from "lucide-react";
 import { logout } from "../lib/auth";
 
-const STEPS=[{path:"/",label:"Overview"},{path:"/connect",label:"Connect"},{path:"/evidence",label:"Evidence"},{path:"/reconstruction",label:"Reconstruction"},{path:"/incident",label:"Incident"},{path:"/graph",label:"Graph"},{path:"/witness",label:"Human Witness"},{path:"/exposure",label:"Exposure"},{path:"/recovery",label:"Recovery"}];
+const LINKS=[
+  ["/app","Command Center",LayoutDashboard],
+  ["/app/incidents","Incidents",FileSearch],
+  ["/app/data-sources","Data Sources",Database],
+  ["/app/team","Team & Controls",Users],
+] as const;
 
 export default function AppShell({children}:{children:React.ReactNode}){
   const location=useLocation();
   const isLanding=location.pathname==="/";
   const isSaaS=location.pathname.startsWith("/app");
   const [mobileOpen,setMobileOpen]=React.useState(false);
-
   React.useEffect(()=>setMobileOpen(false),[location.pathname]);
 
-  if(isSaaS){
-    const links=[["/app","Overview"],["/app/incidents","Incidents"],["/app/data-sources","Data sources"],["/app/team","Team"]];
-    return <div className="min-h-screen bg-graphite text-text_primary">
-      <header className="sticky top-0 z-40 border-b border-surface_border bg-graphite/95 backdrop-blur-md">
-        <div className="max-w-canvas mx-auto px-5 sm:px-10 h-16 flex items-center justify-between gap-6">
-          <Link to="/app" className="flex items-baseline gap-2.5 shrink-0"><span className="font-display text-[17px] tracking-tight">PRIMHORA</span><span className="label-eyebrow text-text_primary/30 hidden sm:inline">Operations</span></Link>
-          <nav className="hidden md:flex items-center gap-6 text-[12px] text-text_primary/45">{links.map(([href,label])=><Link key={href} className={location.pathname===href||location.pathname.startsWith(href+"/")?"text-text_primary":"hover:text-text_primary"} to={href}>{label}</Link>)}</nav>
-          <div className="flex items-center gap-3"><span className="hidden sm:inline status-pill border-amber/25 text-amber/70">Workspace</span><button aria-label="Open workspace navigation" onClick={()=>setMobileOpen(v=>!v)} className="md:hidden p-2 rounded-lg border border-surface_border focus-ring">{mobileOpen?<X size={16}/>:<Menu size={16}/>}</button><button onClick={logout} className="text-xs text-text_primary/45 hover:text-text_primary" aria-label="Sign out">Sign out</button></div>
+  if(isSaaS) return <div className="min-h-screen bg-graphite text-text_primary">
+    <aside className="fixed inset-y-0 left-0 z-50 hidden w-[248px] border-r border-surface_border bg-[#0b0c0d] lg:flex lg:flex-col">
+      <div className="px-6 pt-7 pb-6">
+        <Link to="/app" className="flex items-center gap-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04]"><Zap size={15}/></span>
+          <span><span className="block font-display text-[17px] tracking-tight">PRIMHORA</span><span className="label-eyebrow text-text_primary/25">Incident intelligence</span></span>
+        </Link>
+      </div>
+      <nav className="px-3 space-y-1">
+        <p className="label-eyebrow px-3 py-3 text-text_primary/20">Workspace</p>
+        {LINKS.map(([href,label,Icon])=><Link key={href} to={href} className={location.pathname===href||location.pathname.startsWith(href+"/")?"nav-item nav-item-active":"nav-item"}><Icon size={16}/><span>{label}</span>{href==="/app/incidents"&&<span className="ml-auto h-1.5 w-1.5 rounded-full bg-amber"/>}</Link>)}
+      </nav>
+      <div className="mt-auto p-4">
+        <div className="rounded-2xl border border-emerald/15 bg-emerald/[0.04] p-4">
+          <div className="flex items-center gap-2"><span className="status-dot bg-emerald"/><span className="label-eyebrow text-emerald/80">System nominal</span></div>
+          <p className="mt-3 text-[11px] leading-relaxed text-text_primary/35">Read-only controls active. No money movement is permitted.</p>
         </div>
-        {mobileOpen&&<nav className="md:hidden border-t border-surface_border px-5 py-3 bg-graphite">{links.map(([href,label])=><Link key={href} to={href} className="block py-3 text-sm text-text_primary/60">{label}</Link>)}</nav>}
-      </header><main>{children}</main>
-    </div>;
-  }
+        <button onClick={logout} className="mt-4 w-full rounded-xl border border-surface_border px-3 py-2.5 text-left text-xs text-text_primary/40 hover:text-text_primary hover:bg-surface_raised transition">Sign out</button>
+      </div>
+    </aside>
+    <header className="sticky top-0 z-40 border-b border-surface_border bg-[#0b0c0d]/90 backdrop-blur-xl lg:ml-[248px]">
+      <div className="mx-auto flex h-[72px] max-w-[1500px] items-center justify-between px-5 sm:px-8">
+        <div className="lg:hidden"><Link to="/app" className="font-display tracking-tight">PRIMHORA</Link></div>
+        <div className="hidden lg:flex items-center gap-2 text-xs text-text_primary/35"><Activity size={13}/><span>Operations control plane</span><span className="text-text_primary/15">/</span><span>{sessionStorage.getItem("primhora_workspace")||"Workspace"}</span></div>
+        <div className="flex items-center gap-3">
+          <span className="hidden sm:inline-flex status-pill border-emerald/20 text-emerald/75"><span className="status-dot bg-emerald mr-2"/> Read-only safe mode</span>
+          <button aria-label="Open workspace navigation" onClick={()=>setMobileOpen(v=>!v)} className="lg:hidden rounded-xl border border-surface_border p-2.5">{mobileOpen?<X size={16}/>:<Menu size={16}/>}</button>
+        </div>
+      </div>
+      {mobileOpen&&<nav className="lg:hidden border-t border-surface_border bg-[#0b0c0d] p-3 space-y-1">{LINKS.map(([href,label,Icon])=><Link key={href} to={href} className="nav-item"><Icon size={16}/><span>{label}</span></Link>)}</nav>}
+    </header>
+    <main className="lg:ml-[248px]">{children}</main>
+  </div>;
 
   return <div className={isLanding?"min-h-screen bg-text_primary text-graphite":"min-h-screen bg-graphite text-text_primary"}>
-    <header className={`sticky top-0 z-40 border-b ${isLanding?"border-graphite/10 bg-text_primary/90":"border-surface_border bg-graphite/95"} backdrop-blur-md`}>
-      <div className="max-w-canvas mx-auto flex items-center justify-between px-5 py-3 sm:px-10">
-        <Link to="/" className="flex items-baseline gap-2.5"><span className="font-display text-[17px] tracking-tight">PRIMHORA</span><span className={`label-eyebrow ${isLanding?"text-graphite/40":"text-text_primary/35"}`}>Financial incident response</span></Link>
-        <nav className="flex items-center gap-5">{!isLanding&&<Link to="/audit" className="text-[13px] text-text_primary/55 hover:text-text_primary">Audit</Link>}{!isLanding&&location.pathname!=="/demo/setup"&&<Link to="/demo/setup" className="text-[13px] text-text_primary/55 hover:text-text_primary">Restart demo</Link>}</nav>
+    <header className={`sticky top-0 z-40 border-b ${isLanding?"border-graphite/10 bg-text_primary/90":"border-surface_border bg-graphite/95"} backdrop-blur-xl`}>
+      <div className="mx-auto flex h-16 max-w-canvas items-center justify-between px-5 sm:px-10">
+        <Link to="/" className="flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-lg border border-current/10"><ShieldCheck size={14}/></span><span className="font-display text-[17px] tracking-tight">PRIMHORA</span><span className={`label-eyebrow hidden sm:inline ${isLanding?"text-graphite/35":"text-text_primary/30"}`}>Financial incident response</span></Link>
+        <nav className="flex items-center gap-5">{!isLanding&&<Link to="/audit" className="text-[13px] text-text_primary/50 hover:text-text_primary">Audit</Link>}{!isLanding&&<Link to="/demo/setup" className="text-[13px] text-text_primary/50 hover:text-text_primary">Synthetic demo</Link>}</nav>
       </div>
-    </header><main>{children}</main>
+    </header>
+    <main>{children}</main>
   </div>
 }
-export function StepFooter({current}:{current:string}){const idx=STEPS.findIndex(s=>s.path===current);if(idx===-1)return null;return <div className="max-w-canvas mx-auto px-5 sm:px-10 py-6"><ol className="flex flex-wrap gap-x-2 gap-y-1 text-[12px] font-ui text-text_primary/40">{STEPS.map((s,i)=><li key={s.path} className="flex items-center gap-2"><span className={i===idx?"text-text_primary font-medium":i<idx?"text-text_primary/60":""}>{s.label}</span>{i<STEPS.length-1&&<span aria-hidden>→</span>}</li>)}</ol></div>}
+export function StepFooter({current}:{current:string}){return null}
