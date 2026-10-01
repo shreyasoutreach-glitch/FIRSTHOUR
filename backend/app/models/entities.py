@@ -411,6 +411,9 @@ class User(Base, TenantScoped):
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True)
     email: Mapped[str] = mapped_column(String(160))
+    # Immutable subject from the configured OIDC identity provider. Nullable only
+    # for legacy/demo rows; production authentication requires this mapping.
+    idp_subject: Mapped[str | None] = mapped_column(String(255), unique=True, index=True, nullable=True)
     display_name: Mapped[str] = mapped_column(String(120), default="")
     role: Mapped[str] = mapped_column(String(24), index=True)  # ANALYST/INVESTIGATOR/FINANCE_OPERATOR/APPROVER/ADMINISTRATOR
     api_token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
