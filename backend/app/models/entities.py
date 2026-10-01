@@ -401,11 +401,13 @@ class AuditEvent(Base, TenantScoped):
 
 
 class User(Base, TenantScoped):
-    """Deliberately minimal: this is NOT a production identity system (no
-    password hashing, no SSO, no MFA) -- seeded and referenced only by a
-    bearer token issued at seed time. A real deployment replaces this table's
-    authentication with the customer's own IdP (Okta/Azure AD/etc.) and keeps
-    only the role/tenant assignment shape. See LIMITATIONS.md."""
+    """Application identity binding for Primhora RBAC.
+
+    Passwords and identity-provider credentials do not live in this database.
+    Production requests are authenticated by the configured OIDC provider and
+    mapped to this row through the immutable idp_subject claim. The
+    api_token column remains only for legacy/demo compatibility and is not
+    accepted by the production authentication path."""
 
     __tablename__ = "users"
 
