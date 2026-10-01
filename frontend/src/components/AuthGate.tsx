@@ -1,10 +1,12 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { getAccessToken, authConfigured, authRequired, authProviderName, handleCallback, login, logout, getReturnTo, clearReturnTo } from "../lib/auth";
 import { setAccessTokenProvider } from "../lib/api";
 
 type Status = "loading" | "ready" | "error";
 
 export default function AuthGate({ children }: { children: React.ReactNode }) {
+  const navigate = useNavigate();
   const [status, setStatus] = React.useState<Status>("loading");
   const [message, setMessage] = React.useState("");
 
@@ -24,7 +26,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
         if (completed) {
           const destination = getReturnTo();
           clearReturnTo();
-          window.history.replaceState({}, document.title, destination);
+          navigate(destination, { replace: true });
         } else {
           try {
             getAccessToken();
@@ -43,7 +45,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
       }
     })();
     return () => { active = false; };
-  }, []);
+  }, [navigate]);
 
   if (status === "ready") return <>{children}</>;
 
