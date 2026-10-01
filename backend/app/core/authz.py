@@ -81,13 +81,15 @@ def get_current_user(authorization: str = Header(default=""), db: Session = Depe
     except Exception as e:
         raise HTTPException(401, "Token validation failed")
         
-    email = payload.get("email")
-    if not email:
-        raise HTTPException(401, "JWT payload must contain 'email' claim for provisioning")
+    subject = payload.get("sub")
+    if not subject or not isinstance(subject, str):
+        raise HTTPException(401, "JWT payload must contain an immutable 'sub' claim")
 
-    user = db.query(User).filter(User.email == email).first()
+    # Production authorization is bound to the IdP subject, not email. Email
+    # can change; the OIDC subject is the stable identity key.
+    user = db.query(User).filter(User.idp_subject == subject).first()
     if user is None:
-        raise HTTPException(403, f"User {email} is not provisioned for this application")
+        raise HTTPException(403, "Identity is not provisioned for this application")
 
     return user
 
