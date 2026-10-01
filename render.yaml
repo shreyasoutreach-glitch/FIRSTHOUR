@@ -22,7 +22,7 @@ services:
       - key: SEED
         value: 42
       - key: CORS_ORIGINS
-        value: "https://firsthour-ui-n4cc.onrender.com,https://firsthour-ui.onrender.com"
+        value: "https://firsthour-ui-n4cc.onrender.com"
       - key: GEMINI_API_KEY
         sync: false
       - key: RAZORPAY_KEY_ID
