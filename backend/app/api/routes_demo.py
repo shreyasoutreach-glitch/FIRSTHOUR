@@ -3,13 +3,17 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.core.authz import get_system_db, require_permission\nfrom app.core.database import get_db
+from app.core.authz import get_system_db, require_permission
+from app.core.database import get_db
 from app.core.config import get_settings
 from app.demo.chaos_lab import inject_scenario
 from app.models.entities import User
 from app.schemas.schemas import DemoResetResponse, InjectIncidentRequest, InjectIncidentResponse
 
 router = APIRouter(tags=["demo"])
+
+settings = get_settings()
+
 
 @router.post("/demo/session")
 def demo_session(role: str = "ADMINISTRATOR", db: Session = Depends(get_db)):
@@ -25,7 +29,7 @@ def demo_session(role: str = "ADMINISTRATOR", db: Session = Depends(get_db)):
     if not token:
         raise HTTPException(503, "Demo identity is unavailable. Reset the demo dataset.")
     return {"mode": "DEMO", "role": role, "tenant_id": "TEN_NORTHBRIDGE", "token": token, "simulated": True}
-settings = get_settings()
+
 
 # These endpoints are destructive (reset wipes and reseeds the ENTIRE
 # database, across every tenant) and are gated two ways: DEMO_MODE must be
