@@ -41,9 +41,7 @@ def test_jwt_validation():
         get_current_user("Bearer ", db)
     assert exc.value.status_code == 401
 
-    original_demo_mode = settings.demo_mode
-    settings.demo_mode = False
-    try:
+    original_demo_mode = settings.demo_mode\n    original_issuer = settings.oidc_issuer\n    original_audience = settings.auth_provider_audience\n    original_jwks = settings.oidc_jwks_url\n    settings.demo_mode = False\n    settings.oidc_issuer = "https://issuer.example"\n    settings.auth_provider_audience = "primhora"\n    settings.oidc_jwks_url = "https://issuer.example/.well-known/jwks.json"\n    try:
         with patch("app.core.authz.jwks_client") as mock_jwks, patch("jwt.decode") as mock_decode:
             mock_jwks.get_signing_key_from_jwt.return_value.key = "fake-key"
 
@@ -78,4 +76,4 @@ def test_jwt_validation():
             assert user.role == "ADMINISTRATOR"
             assert user.tenant_id == "t1"
     finally:
-        settings.demo_mode = original_demo_mode
+        settings.demo_mode = original_demo_mode\n        settings.oidc_issuer = original_issuer\n        settings.auth_provider_audience = original_audience\n        settings.oidc_jwks_url = original_jwks
