@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from fastapi import Depends, Header, HTTPException
 from sqlalchemy.orm import Session
@@ -10,7 +10,6 @@ from app.models.entities import User
 from app.core.config import get_settings
 
 ROLES = ("ANALYST", "INVESTIGATOR", "FINANCE_OPERATOR", "APPROVER", "ADMINISTRATOR")
-
 PERMISSIONS = ("VIEW", "INVESTIGATE", "RECOMMEND", "APPROVE", "EXECUTE")
 
 ROLE_PERMISSIONS: dict[str, set[str]] = {
@@ -23,29 +22,23 @@ ROLE_PERMISSIONS: dict[str, set[str]] = {
 
 settings = get_settings()
 
-jwks_client = None
-if not settings.demo_mode:
-    if settings.auth_provider_domain:
-        jwks_url = f"https://{settings.auth_provider_domain}/.well-known/jwks.json"
-        jwks_client = PyJWKClient(jwks_url)
+jwks_client = PyJWKClient(settings.oidc_jwks_url) if (not settings.demo_mode and settings.oidc_jwks_url) else None
+
 
 def get_current_user(authorization: str = Header(default=""), db: Session = Depends(get_db)) -> User:
-    if not authorization or not authorization.startswith('Bearer '):
+    if not authorization or not authorization.startswith("Bearer "):
         raise HTTPException(401, "Missing or malformed Authorization header (expected 'Bearer <token>')")
     token = authorization[len("Bearer "):].strip()
     if not token:
         raise HTTPException(401, "Empty bearer token")
 
     db.set_tenant(None)
-    
+
     if settings.demo_mode:
         user = db.query(User).filter(User.api_token == token).first()
         if user is not None:
             return user
-        # The demo reset wipes and recreates users. During that short window,
-        # browser requests must retain their demo identity instead of becoming
-        # transient 401s. This identity exists only while DEMO_MODE is enabled.
-        if token == settings.demo_master_token:
+        if token == settings.demo_master_token and settings.demo_master_token:
             return User(
                 id="USR_DEMO_MASTER",
                 tenant_id="TEN_NORTHBRIDGE",
@@ -56,7 +49,9 @@ def get_current_user(authorization: str = Header(default=""), db: Session = Depe
             )
         raise HTTPException(401, "Invalid token")
 
-    # PRODUCTION OIDC JWT VALIDATION
+    if jwks_client is None or not settings.oidc_issuer or not settings.auth_provider_audience:
+        raise HTTPException(503, "Production identity provider is not configured")
+
     try:
         signing_key = jwks_client.get_signing_key_from_jwt(token)
         payload = jwt.decode(
@@ -64,47 +59,58 @@ def get_current_user(authorization: str = Header(default=""), db: Session = Depe
             signing_key.key,
             algorithms=["RS256"],
             audience=settings.auth_provider_audience,
-            issuer=f"https://{settings.auth_provider_domain}/"
+            issuer=settings.oidc_issuer,
+            options={"require": ["exp", "iat", "sub", "iss", "aud"]},
         )
-    except jwt.exceptions.PyJWKClientError:
-        raise HTTPException(401, "Unable to fetch JWKS from Identity Provider")
     except jwt.ExpiredSignatureError:
         raise HTTPException(401, "Token has expired")
     except jwt.InvalidIssuerError:
         raise HTTPException(401, "Invalid token issuer")
     except jwt.InvalidAudienceError:
         raise HTTPException(401, "Invalid token audience")
-    except jwt.DecodeError:
-        raise HTTPException(401, "Malformed or structurally invalid token")
     except jwt.InvalidSignatureError:
-        raise HTTPException(401, "Invalid signature")
-    except Exception as e:
+        raise HTTPException(401, "Invalid token signature")
+    except jwt.exceptions.PyJWKClientError:
+        raise HTTPException(503, "Unable to obtain signing keys from Identity Provider")
+    except jwt.InvalidTokenError:
+        raise HTTPException(401, "Invalid authentication token")
+    except Exception:
         raise HTTPException(401, "Token validation failed")
-        
+
     subject = payload.get("sub")
     if not subject or not isinstance(subject, str):
         raise HTTPException(401, "JWT payload must contain an immutable 'sub' claim")
 
-    # Production authorization is bound to the IdP subject, not email. Email
-    # can change; the OIDC subject is the stable identity key.
     user = db.query(User).filter(User.idp_subject == subject).first()
     if user is None:
-        raise HTTPException(403, "Identity is not provisioned for this application")
+        raise HTTPException(403, "Identity is authenticated but not provisioned for this application")
 
     return user
 
+
 def require_permission(permission: str):
+    if permission not in PERMISSIONS:
+        raise ValueError(f"Unknown permission: {permission}")
+
     def dependency(user: User = Depends(get_current_user)) -> User:
         user_perms = ROLE_PERMISSIONS.get(user.role, set())
         if permission not in user_perms:
             raise HTTPException(403, f"Role {user.role} lacks permission {permission}")
         return user
+
     return dependency
 
-def get_tenant_db(user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Session:
+
+def get_tenant_db(user: User = Depends(require_permission("VIEW")), db: Session = Depends(get_db)) -> Session:
     db.set_tenant(user.tenant_id)
     return db
 
-def get_system_db(db: Session = Depends(get_db)) -> Session:
+
+def get_system_db(
+    user: User = Depends(require_permission("EXECUTE")),
+    db: Session = Depends(get_db),
+) -> Session:
+    if user.role != "ADMINISTRATOR":
+        raise HTTPException(403, "Administrator role required for system operations")
     db.set_tenant(None)
     return db
