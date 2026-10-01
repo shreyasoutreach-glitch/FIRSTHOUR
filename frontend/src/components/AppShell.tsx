@@ -1,6 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import { logout } from "../lib/auth";
 
 const STEPS=[{path:"/",label:"Overview"},{path:"/connect",label:"Connect"},{path:"/evidence",label:"Evidence"},{path:"/reconstruction",label:"Reconstruction"},{path:"/incident",label:"Incident"},{path:"/graph",label:"Graph"},{path:"/witness",label:"Human Witness"},{path:"/exposure",label:"Exposure"},{path:"/recovery",label:"Recovery"}];
 
@@ -19,7 +20,7 @@ export default function AppShell({children}:{children:React.ReactNode}){
         <div className="max-w-canvas mx-auto px-5 sm:px-10 h-16 flex items-center justify-between gap-6">
           <Link to="/app" className="flex items-baseline gap-2.5 shrink-0"><span className="font-display text-[17px] tracking-tight">PRIMHORA</span><span className="label-eyebrow text-text_primary/30 hidden sm:inline">Operations</span></Link>
           <nav className="hidden md:flex items-center gap-6 text-[12px] text-text_primary/45">{links.map(([href,label])=><Link key={href} className={location.pathname===href||location.pathname.startsWith(href+"/")?"text-text_primary":"hover:text-text_primary"} to={href}>{label}</Link>)}</nav>
-          <div className="flex items-center gap-3"><span className="hidden sm:inline status-pill border-amber/25 text-amber/70">Workspace</span><button aria-label="Open workspace navigation" onClick={()=>setMobileOpen(v=>!v)} className="md:hidden p-2 rounded-lg border border-surface_border focus-ring">{mobileOpen?<X size={16}/>:<Menu size={16}/>}</button><Link to="/" className="text-xs text-text_primary/45 hover:text-text_primary">Exit</Link></div>
+          <div className="flex items-center gap-3"><span className="hidden sm:inline status-pill border-amber/25 text-amber/70">Workspace</span><button aria-label="Open workspace navigation" onClick={()=>setMobileOpen(v=>!v)} className="md:hidden p-2 rounded-lg border border-surface_border focus-ring">{mobileOpen?<X size={16}/>:<Menu size={16}/>}</button><button onClick={logout} className="text-xs text-text_primary/45 hover:text-text_primary" aria-label="Sign out">Sign out</button></div>
         </div>
         {mobileOpen&&<nav className="md:hidden border-t border-surface_border px-5 py-3 bg-graphite">{links.map(([href,label])=><Link key={href} to={href} className="block py-3 text-sm text-text_primary/60">{label}</Link>)}</nav>}
       </header><main>{children}</main>
