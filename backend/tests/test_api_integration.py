@@ -32,6 +32,7 @@ def client(tmp_path):
 
     db = TestingSessionLocal()
     db.add(m.Tenant(id=TEST_TENANT, name="API Test Tenant"))
+    db.add(m.Tenant(id="TEN_NORTHBRIDGE", name="Northbridge Demo"))
     db.commit()
 
     tokens = {}
@@ -73,6 +74,30 @@ def client(tmp_path):
 
 def auth(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
+
+
+def test_demo_session_bootstraps_without_authentication(client):
+    """The synthetic demo must be able to bootstrap its own demo credential."""
+    db = client["session_factory"]()
+    try:
+        with tenant_scope(db, "TEN_NORTHBRIDGE"):
+            db.add(m.User(
+                id="USR_DEMO_ADMIN",
+                email="administrator@northbridge.demo",
+                display_name="Administrator (Demo)",
+                role="ADMINISTRATOR",
+                api_token="demo-admin-token",
+            ))
+            db.commit()
+    finally:
+        db.close()
+
+    resp = client["client"].post("/api/demo/session?role=ADMINISTRATOR")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["mode"] == "DEMO"
+    assert body["role"] == "ADMINISTRATOR"
+    assert body["token"] == "demo-admin-token"
 
 
 def test_requires_authentication(client):
