@@ -22,8 +22,11 @@ from app.core.config import get_settings
 settings = get_settings()
 
 if not settings.demo_mode:
-    if not settings.auth_provider_domain or not settings.auth_provider_audience:
-        raise RuntimeError("DEMO_MODE is false but no production authentication provider is configured. System halted.")
+    if not settings.oidc_issuer or not settings.auth_provider_audience:
+        raise RuntimeError(
+            "DEMO_MODE is false but no complete production authentication provider "
+            "configuration is present. System halted."
+        )
 
 
 @asynccontextmanager
