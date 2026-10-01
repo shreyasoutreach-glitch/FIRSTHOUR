@@ -38,7 +38,10 @@ function safeReturnTo(value: string | null): string {
 
 function parseExpiry(token: string): number {
   try {
-    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    const encoded = token.split(".")[1];
+    if (!encoded) return 0;
+    const padded = encoded.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(encoded.length / 4) * 4, "=");
+    const payload = JSON.parse(atob(padded));
     return Number(payload.exp || 0) * 1000;
   } catch {
     return 0;
