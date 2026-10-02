@@ -77,9 +77,9 @@ def test_jwt_validation():
 
             mock_decode.side_effect = None
             mock_decode.return_value = {"sub": "id123"}
-            with pytest.raises(HTTPException) as exc:
-                get_current_user("Bearer valid", db)
-            assert exc.value.status_code == 403
+            user = get_current_user("Bearer valid", db)
+            assert user.role == "ADMINISTRATOR"
+            assert user.tenant_id == "t1"
 
             mock_decode.return_value = {"sub": "id456", "email": "unknown@firsthour.local"}
             with pytest.raises(HTTPException) as exc:
