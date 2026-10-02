@@ -257,17 +257,9 @@ def post_attestation(incident_id: str, body: AttestationRequest, db: Session = D
 def get_recovery_packet(incident_id: str, db: Session = Depends(get_tenant_db)):
     if incident_repo.get_incident(db, incident_id) is None:
         raise HTTPException(404, "incident not found")
-    packet = build_recovery_packet(db, incident_id)
-
-    incident = incident_repo.get_incident(db, incident_id)
-    if can_transition(incident.state, "EXPOSURE_ASSESSED"):
-        incident.state = "EXPOSURE_ASSESSED"
-    if can_transition(incident.state, "RECOVERY_READY"):
-        incident.state = "RECOVERY_READY"
-        audit_log(db, incident_id=incident_id, actor="SYSTEM", event_type="RECOVERY_PACKET_GENERATED",
-                  summary="Recovery packet generated", sources=[], detail={})
-    db.commit()
-    return packet
+    # GET is intentionally side-effect free. Lifecycle transitions are performed
+    # by the governed recovery-command endpoints, not by reading a packet.
+    return build_recovery_packet(db, incident_id)
 
 
 @router.get("/incident/{incident_id}/audit")
