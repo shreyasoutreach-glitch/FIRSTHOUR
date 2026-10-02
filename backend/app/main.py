@@ -22,7 +22,7 @@ from app.core.config import get_settings
 settings = get_settings()
 
 if not settings.demo_mode:
-    if not settings.oidc_issuer or not settings.auth_provider_audience:
+    if not settings.oidc_issuer or not settings.auth_provider_audience or not settings.oidc_jwks_url:
         raise RuntimeError(
             "DEMO_MODE is false but no complete production authentication provider "
             "configuration is present. System halted."
