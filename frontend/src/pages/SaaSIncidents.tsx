@@ -78,7 +78,7 @@ export default function SaaSIncidents() {
         (severity === "HIGH_CRITICAL" ? ["HIGH", "CRITICAL"].includes(incidentSeverity) : incidentSeverity === severity);
       return matchesQuery && matchesState && matchesSeverity;
     });
-    return [...filtered].sort((a: any, b: any) => {
+    return [...items].sort((a: any, b: any) => {
       if (severity === "HIGH_CRITICAL") return Number(b.incident_evidence_score || 0) - Number(a.incident_evidence_score || 0);
       return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
     });
