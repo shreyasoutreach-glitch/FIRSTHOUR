@@ -24,9 +24,16 @@ class MockDB:
         return self
 
     def first(self):
-        email = self.cond.right.value
-        if email == "admin@firsthour.local":
-            return User(id="u1", email=email, role="ADMINISTRATOR", tenant_id="t1")
+        field = getattr(self.cond.left, "name", "")
+        value = self.cond.right.value
+        if field == "idp_subject" and value == "id123":
+            return User(
+                id="u1",
+                email="admin@firsthour.local",
+                role="ADMINISTRATOR",
+                tenant_id="t1",
+                idp_subject="id123",
+            )
         return None
 
 
@@ -42,9 +49,9 @@ def test_jwt_validation():
     assert exc.value.status_code == 401
 
     original_demo_mode = settings.demo_mode
-    original_issuer = settings.oidc_issuer
+    original_issuer = settings.auth_provider_issuer
     original_audience = settings.auth_provider_audience
-    original_jwks = settings.oidc_jwks_url
+    original_jwks = settings.auth_provider_jwks_url
     settings.demo_mode = False
     settings.auth_provider_issuer = "https://issuer.example"
     settings.auth_provider_audience = "primhora"
@@ -74,7 +81,7 @@ def test_jwt_validation():
                 get_current_user("Bearer valid", db)
             assert exc.value.status_code == 403
 
-            mock_decode.return_value = {"sub": "id123", "email": "unknown@firsthour.local"}
+            mock_decode.return_value = {"sub": "id456", "email": "unknown@firsthour.local"}
             with pytest.raises(HTTPException) as exc:
                 get_current_user("Bearer valid", db)
             assert exc.value.status_code == 403
@@ -85,6 +92,6 @@ def test_jwt_validation():
             assert user.tenant_id == "t1"
     finally:
         settings.demo_mode = original_demo_mode
-        settings.auth_provider_issuer = ""
+        settings.auth_provider_issuer = original_issuer
         settings.auth_provider_audience = original_audience
         settings.auth_provider_jwks_url = original_jwks
