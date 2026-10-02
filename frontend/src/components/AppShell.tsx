@@ -1,23 +1,23 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Activity, BarChart3, Database, FileSearch, LayoutDashboard, Menu, ShieldCheck, Users, X, Zap } from "lucide-react";
+import { Activity, Database, FileSearch, LayoutDashboard, Menu, ShieldCheck, Users, X, Zap, ArrowUpRight } from "lucide-react";
 import { logout } from "../lib/auth";
 
-const LINKS=[
+const LINKS = [
   ["/app","Command Center",LayoutDashboard],
   ["/app/incidents","Incidents",FileSearch],
   ["/app/data-sources","Data Sources",Database],
   ["/app/team","Team & Controls",Users],
 ] as const;
 
-export default function AppShell({children}:{children:React.ReactNode}){
-  const location=useLocation();
-  const isLanding=location.pathname==="/";
-  const isSaaS=location.pathname.startsWith("/app");
-  const [mobileOpen,setMobileOpen]=React.useState(false);
+export default function AppShell({children}:{children:React.ReactNode}) {
+  const location = useLocation();
+  const isLanding = location.pathname === "/";
+  const isSaaS = location.pathname.startsWith("/app");
+  const [mobileOpen,setMobileOpen] = React.useState(false);
   React.useEffect(()=>setMobileOpen(false),[location.pathname]);
 
-  if(isSaaS) return <div className="min-h-screen bg-graphite text-text_primary">
+  if (isSaaS) return <div className="min-h-screen bg-graphite text-text_primary">
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-[248px] border-r border-surface_border bg-[#0b0c0d] lg:flex lg:flex-col">
       <div className="px-6 pt-7 pb-6">
         <Link to="/app" className="flex items-center gap-3">
@@ -52,13 +52,22 @@ export default function AppShell({children}:{children:React.ReactNode}){
   </div>;
 
   return <div className={isLanding?"min-h-screen bg-text_primary text-graphite":"min-h-screen bg-graphite text-text_primary"}>
-    <header className={`sticky top-0 z-40 border-b ${isLanding?"border-graphite/10 bg-text_primary/90":"border-surface_border bg-graphite/95"} backdrop-blur-xl`}>
+    <header className={"sticky top-0 z-40 border-b "+(isLanding?"border-graphite/10 bg-text_primary/80":"border-surface_border bg-graphite/95")+" backdrop-blur-xl"}>
       <div className="mx-auto flex h-16 max-w-canvas items-center justify-between px-5 sm:px-10">
-        <Link to="/" className="flex items-center gap-3"><span className="flex h-8 w-8 items-center justify-center rounded-lg border border-current/10"><ShieldCheck size={14}/></span><span className="font-display text-[17px] tracking-tight">PRIMHORA</span><span className={`label-eyebrow hidden sm:inline ${isLanding?"text-graphite/35":"text-text_primary/30"}`}>Financial incident response</span></Link>
-        <nav className="flex items-center gap-5">{!isLanding&&<Link to="/audit" className="text-[13px] text-text_primary/50 hover:text-text_primary">Audit</Link>}{!isLanding&&<Link to="/demo/setup" className="text-[13px] text-text_primary/50 hover:text-text_primary">Synthetic demo</Link>}</nav>
+        <Link to="/" className="group flex items-center gap-3">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-current/10 transition group-hover:-rotate-3"><ShieldCheck size={14}/></span>
+          <span className="font-display text-[17px] tracking-tight">PRIMHORA</span>
+          <span className={"label-eyebrow hidden sm:inline "+(isLanding?"text-graphite/35":"text-text_primary/30")}>Financial incident intelligence</span>
+        </Link>
+        <nav className="flex items-center gap-2">
+          {isLanding && <a href="#how-it-works" className="hidden rounded-lg px-3 py-2 text-[12px] text-graphite/45 transition hover:bg-graphite/[0.04] hover:text-graphite sm:inline-flex">How it works</a>}
+          {!isLanding && <Link to="/audit" className="rounded-lg px-3 py-2 text-[13px] text-text_primary/50 hover:bg-white/[0.03] hover:text-text_primary">Audit</Link>}
+          {!isLanding && <Link to="/demo/setup" className="rounded-lg px-3 py-2 text-[13px] text-text_primary/50 hover:bg-white/[0.03] hover:text-text_primary">Synthetic demo</Link>}
+          {isLanding && <Link to="/demo/setup" className="hidden items-center gap-2 rounded-lg border border-graphite/10 bg-graphite px-3.5 py-2 text-[12px] font-medium text-text_primary transition hover:bg-[#151718] sm:inline-flex">Enter demo <ArrowUpRight size={13}/></Link>}
+        </nav>
       </div>
     </header>
     <main>{children}</main>
-  </div>
+  </div>;
 }
 export function StepFooter({current}:{current:string}){return null}
