@@ -185,6 +185,25 @@ def test_attestation_rejects_unknown_question(client):
     assert resp.status_code == 400
 
 
+def test_attestation_rejects_high_amount_question_when_signal_is_absent(client):
+    """Question eligibility must come from the incident score, not hard-coded defaults."""
+    db = client["session_factory"]()
+    try:
+        with tenant_scope(db, TEST_TENANT):
+            incident = db.get(m.Incident, "INC_API_TEST")
+            incident.score_components = {}
+            db.commit()
+    finally:
+        db.close()
+
+    resp = client["client"].post(
+        "/api/incident/INC_API_TEST/attestation",
+        json={"question_id": "q_authorized_payouts", "answer": "NO"},
+        headers=auth(client["tokens"]["INVESTIGATOR"]),
+    )
+    assert resp.status_code == 400
+
+
 def test_recovery_packet_has_source_references(client):
     resp = client["client"].get("/api/incident/INC_API_TEST/recovery-packet", headers=auth(client["tokens"]["ANALYST"]))
     assert resp.status_code == 200
