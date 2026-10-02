@@ -1,14 +1,13 @@
 # PRIMHORA Honest Audit
 
-Audit date: 2026-09-30
-Working branch: primhora-production-rebuild
-Working branch: primhora-production-rebuild
+Audit date: 2026-10-02
+Working branch: main
 
 ## Executive status
 
 Primhora is a working synthetic financial-investigation product, not yet a production customer-data product.
 
-Render backend and frontend are live. The repository contains deterministic incident/reconstruction logic, tenant-scoped sessions, OIDC JWT validation code, RBAC, evidence providers, recovery-command state transitions, convergence checking, audit logging, and a RazorpayX adapter.
+The Vercel frontend and Render backend are live. The repository contains deterministic incident/reconstruction logic, tenant-scoped sessions, OIDC JWT validation code, RBAC, evidence providers, recovery-command state transitions, convergence checking, audit logging, and a RazorpayX adapter.
 
 The biggest remaining product gap is the boundary between customer-owned data and synthetic/demo data. Generic customer CSV ingestion, persistent customer organizations/membership, production identity provisioning, and production-grade data-source onboarding remain incomplete.
 
@@ -112,11 +111,11 @@ Phase 4 must enforce this boundary in schemas, provenance, tests and UI wording.
 5. Keep broader provider integrations adapter-only until credentials/authorization exist.
 
 
-## Phase 4-6 verification update
+## Verification update
 
-GitHub Actions run 36677872645 on 2026-09-30 completed successfully.
+GitHub Actions run 36987965934 on 2026-10-02 completed successfully.
 
-- Backend: pytest passed.
+- Backend: 150 tests passed.
 - Frontend: npm ci, TypeScript lint, and production build passed.
 - Docker: compose build/start/healthcheck/teardown passed.
 - Synthetic evaluation step passed and emitted metrics.
