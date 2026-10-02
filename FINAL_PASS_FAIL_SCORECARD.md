@@ -4,8 +4,8 @@ This scorecard records verification status rather than product claims.
 
 ## Current status
 - Render backend: LIVE, deployed from the merged main commit.
-- Render frontend: LIVE, deployed from the merged main commit.
-- Render frontend API origin: configured to the Render backend URL.
+- Vercel frontend: LIVE at the canonical PRIMHORA domain.
+- Vercel /api rewrite: configured to the canonical Render backend URL.
 - Workspace creation: backend-persisted in the demo environment; browser storage only retains the returned workspace session token.
 - OIDC JWT validation code path: present; production activation requires an IdP configuration.
 - Tenant-scoped session: implemented and covered by API/DB isolation tests.
@@ -43,6 +43,10 @@ This scorecard records verification status rather than product claims.
 | Broader hidden 50-100+ case evaluation | NOT YET COMPLETE |
 | Fresh deployed-browser verification of Phase 5 flows | NOT YET COMPLETE |
 | Canonical frontend service selection | NOT YET COMPLETE |
+
+## Latest verification snapshot
+
+GitHub Actions run 36987965934 on 2 October 2026 passed the frontend lane, backend lane and Docker verification lane. The backend suite reported 150 passing tests and the synthetic evaluation step passed.
 
 ## Production verification
 
