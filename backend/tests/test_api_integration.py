@@ -120,6 +120,17 @@ def test_get_incident_returns_headline(client):
     assert body["incident_evidence_score"] > 0
 
 
+def test_incident_queue_exposes_operational_metadata(client):
+    resp = client["client"].get("/api/incidents", headers=auth(client["tokens"]["ANALYST"]))
+    assert resp.status_code == 200
+    item = next(x for x in resp.json() if x["id"] == "INC_API_TEST")
+    assert item["merchant_name"] == "API Test Co"
+    assert "severity" in item
+    assert "financial_exposure" in item
+    assert "confidence" in item
+    assert "affected_entities" in item
+
+
 def test_get_incident_404_for_unknown(client):
     resp = client["client"].get("/api/incident/NOPE", headers=auth(client["tokens"]["ANALYST"]))
     assert resp.status_code == 404
