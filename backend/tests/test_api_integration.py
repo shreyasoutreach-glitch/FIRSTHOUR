@@ -258,6 +258,30 @@ def test_recovery_packet_pdf_exports(client):
     assert pdf.content.startswith(b"%PDF")
 
 
+def test_recovery_packet_get_is_read_only(client):
+    db = client["session_factory"]()
+    try:
+        with tenant_scope(db, TEST_TENANT):
+            before = db.get(m.Incident, "INC_API_TEST").state
+            audit_before = db.query(m.AuditEvent).filter(m.AuditEvent.incident_id == "INC_API_TEST").count()
+    finally:
+        db.close()
+
+    resp = client["client"].get("/api/incident/INC_API_TEST/recovery-packet", headers=auth(client["tokens"]["ANALYST"]))
+    assert resp.status_code == 200
+
+    db = client["session_factory"]()
+    try:
+        with tenant_scope(db, TEST_TENANT):
+            after = db.get(m.Incident, "INC_API_TEST").state
+            audit_after = db.query(m.AuditEvent).filter(m.AuditEvent.incident_id == "INC_API_TEST").count()
+    finally:
+        db.close()
+
+    assert after == before
+    assert audit_after == audit_before
+
+
 def test_demo_reset_requires_administrator(client):
     resp = client["client"].post("/api/demo/reset", headers=auth(client["tokens"]["INVESTIGATOR"]))
     assert resp.status_code == 403
