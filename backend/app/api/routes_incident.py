@@ -48,8 +48,29 @@ def _serialize_incident(incident: m.Incident) -> dict:
 
 @router.get("/incidents")
 def list_incidents(db: Session = Depends(get_tenant_db)):
-    incidents = db.query(m.Incident).order_by(m.Incident.created_at.desc()).limit(100).all()
-    return [_serialize_incident(i) for i in incidents]
+    rows = (
+        db.query(m.Incident, m.Merchant.name)
+        .join(m.Merchant, m.Merchant.id == m.Incident.merchant_id)
+        .order_by(m.Incident.created_at.desc())
+        .limit(100)
+        .all()
+    )
+    items = []
+    for incident, merchant_name in rows:
+        item = _serialize_incident(incident)
+        item.update({
+            "merchant_name": merchant_name,
+            "severity": incident.severity,
+            "financial_exposure": incident.financial_exposure,
+            "recoverable_amount": incident.recoverable_amount,
+            "unrecoverable_amount": incident.unrecoverable_amount,
+            "confidence": incident.confidence,
+            "evidence_count": incident.evidence_count,
+            "affected_entities": incident.affected_entities,
+            "resolution_state": incident.resolution_state,
+        })
+        items.append(item)
+    return items
 
 
 @router.get("/incident/{incident_id}")
