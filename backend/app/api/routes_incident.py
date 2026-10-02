@@ -18,6 +18,17 @@ from app.services.recovery.packet import build_recovery_packet
 
 router = APIRouter(tags=["incident"])
 
+def _candidate_questions(db: Session, incident: m.Incident):
+    score = incident.score_components or {}
+    comms = incident_repo.list_communications(db, incident.id)
+    return candidate_questions_for_incident(
+        has_new_beneficiary=float(score.get("new_beneficiary", 0)) > 0,
+        has_communication_evidence=len(comms) > 0,
+        is_high_amount=float(score.get("amount_anomaly", 0)) > 0.5,
+        has_dormant_reactivation=float(score.get("dormant_entity", 0)) > 0.3,
+    )
+
+
 
 def _serialize_incident(incident: m.Incident) -> dict:
     return {
@@ -177,18 +188,7 @@ def get_next_question(incident_id: str, db: Session = Depends(get_tenant_db)):
     if incident is None:
         raise HTTPException(404, "incident not found")
 
-    fevents = incident_repo.list_incident_financial_events(db, incident_id)
-    comms = incident_repo.list_communications(db, incident_id)
-    new_beneficiary = any((incident.score_components or {}).get("new_beneficiary", 0) > 0 for _ in [0])
-    is_high_amount = (incident.score_components or {}).get("amount_anomaly", 0) > 0.5
-    dormant = (incident.score_components or {}).get("dormant_entity", 0) > 0.3
-
-    candidates = candidate_questions_for_incident(
-        has_new_beneficiary=new_beneficiary,
-        has_communication_evidence=len(comms) > 0,
-        is_high_amount=is_high_amount,
-        has_dormant_reactivation=dormant,
-    )
+    candidates = _candidate_questions(db, incident)
     answered = {a.question_id for a in incident_repo.list_attestations(db, incident_id)}
     nxt = next_question(candidates, answered)
     if nxt is None:
@@ -206,12 +206,7 @@ def post_attestation(incident_id: str, body: AttestationRequest, db: Session = D
     if incident is None:
         raise HTTPException(404, "incident not found")
 
-    fevents = incident_repo.list_incident_financial_events(db, incident_id)
-    comms = incident_repo.list_communications(db, incident_id)
-    candidates = candidate_questions_for_incident(
-        has_new_beneficiary=True, has_communication_evidence=len(comms) > 0,
-        is_high_amount=True, has_dormant_reactivation=False,
-    )
+    candidates = _candidate_questions(db, incident)
     matched = next((c for c in candidates if c.question_id == body.question_id), None)
     if matched is None:
         raise HTTPException(400, "unknown question_id")
