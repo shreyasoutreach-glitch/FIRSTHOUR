@@ -1,38 +1,44 @@
 # Production Discrepancy Register
 
-Reviewed against the current PRIMHORA repository and live Render topology on 30 September 2026.
+Reviewed against the current PRIMHORA repository and live Vercel/Render topology on 2 October 2026.
 
 This is an engineering gap register, not a claim that every item blocks the capstone.
 
-## Fixed in this hardening pass
+## Fixed in the current hardening passes
 
 | Area | Discrepancy | Action |
 |---|---|---|
-| Workspace | Create organization only wrote to browser sessionStorage; no backend tenant/user was created. | Added persistent workspace provisioning API for the demo environment and wired the UI to it. |
-| Frontend/API wiring | The Render static frontend had no explicit production API origin in the application configuration. | Production deployment configuration will point the frontend at the Render API URL. |
-| Security headers | API responses had no application-level clickjacking, MIME-sniffing, referrer or browser-feature protections. | Added security headers middleware. |
-| Health disclosure | Public health/root response exposed demo mode and configured integration presence. | Reduced health response to non-sensitive status/service fields. |
-| Metrics exposure | /api/metrics and /api/evaluation were authenticated inconsistently. | Added VIEW permission enforcement. |
-| Evidence integrity | Evidence upload did not verify that the supplied incident belonged to the supplied merchant. | Added merchant/incident ownership validation. |
-| Vision errors | Vision extraction errors could return raw exception text to clients. | Return a generic extraction failure while retaining the artifact as unverified. |
-| Deployment IaC | render.yaml contained a destructive seed command and stale Vercel CORS origins, even though the live Render service had already diverged from that file. | Removed seed-from-startup and aligned the blueprint with the Render deployment shape. |
+| Demo bootstrap | /api/demo/session was behind the authenticated admin dependency, creating a bootstrap deadlock. | Demo session issuance now uses the database dependency directly and remains gated by DEMO_MODE; destructive demo reset/injection remain administrator-only. |
+| API routing | Vercel pointed at a stale Render backend hostname. | Canonical rewrite now targets the live Render API service. |
+| Demo availability | Demo identity could disappear when the seeded database was reset. | Stable demo bootstrap configuration and backend-seeded demo identity are used. |
+| Frontend source count | Dashboard could show a connected source merely because a workspace existed. | Metric now reflects accepted CSV imports in the current browser session. |
+| Merchant identity | CSV import could derive the merchant from the workspace name. | Merchant/business is now explicit at import time. |
+| Production authentication gate | Startup checked issuer/audience but could still be incomplete without a usable JWKS endpoint. | Startup now requires issuer, audience and resolved JWKS configuration before DEMO_MODE=false can boot. |
+| JWT test contract | Tests still modeled pre-hardening email-based lookup. | Fixture now validates immutable idp_subject provisioning. |
+| Attestation eligibility | Attestation endpoint hard-coded investigation signals instead of using the incident's actual score components. | Candidate-question generation is shared with the read endpoint and driven by the stored incident signals. |
+| Security headers | API responses lacked application-level browser protections. | Added MIME, clickjacking, referrer, permissions, CSP, HSTS and API no-store headers. |
+| Health disclosure | Public health/root response exposed unnecessary deployment configuration. | Health response is limited to non-sensitive status/service fields. |
+| Metrics exposure | Metrics/evaluation endpoints were authenticated inconsistently. | VIEW permission is required. |
+| Evidence integrity | Evidence upload did not verify merchant/incident ownership. | Upload validates tenant-owned merchant and incident relationships. |
+| Vision errors | Extraction errors could expose raw provider exception text. | Client receives a generic failure while the artifact remains unverified. |
+| Deployment IaC | Render blueprint contained stale/destructive startup behavior and stale frontend origins. | Blueprint was aligned with the current deployment model. |
 
 ## Still not normal for a production MVP
 
 | Area | Current state | Required before external customer data |
 |---|---|---|
-| Authentication | Demo bearer sessions are still enabled on the live environment. | Activate a real OIDC provider and set DEMO_MODE=false. |
-| User provisioning | OIDC lookup is currently email-based and users must already be provisioned. | Add immutable IdP subject mapping plus explicit membership provisioning. |
-| Workspace membership | A user currently carries one tenant_id; the new self-service workspace path is demo-only. | Introduce durable organization membership/invitation lifecycle for production. |
-| Evidence storage | Uploaded evidence is stored on local service filesystem. | Move to durable object storage or a verified persistent disk with backup/retention policy. |
-| Provider coverage | Generic payout CSV is real; live provider adapters are limited. | Add and test the first customer-required provider adapter and reconciliation path. |
-| Webhooks | Razorpay webhook configuration is environment-wide and tied to one merchant. | Make provider credentials/webhook routing tenant-aware and operationally managed. |
-| Abuse controls | No distributed request rate limiting or abuse policy is implemented. | Add edge/app rate limiting for authentication, uploads and high-cost endpoints. |
-| Observability | Basic Render logs exist, but no product-level alerting, structured audit correlation, SLOs or incident runbook are established. | Add structured logs, error tracking, alert thresholds, backup/restore drills and an incident response runbook. |
-| Database migrations | Alembic exists and is run on deploy, but the application still calls Base.metadata.create_all() from seed/bootstrap code. | Keep schema lifecycle solely under migrations for production paths. |
-| Deployment verification | CI verifies builds and local Docker health. Live browser verification still needs to exercise the deployed first-run and investigation flows. | Run a production smoke suite against the deployed URLs after the fixes land. |
-| Frontend deployment topology | Two Render frontend services currently exist. | Select one canonical production frontend and retire the duplicate after verification. |
-| Recovery | Recovery commands are deliberately simulated/read-only. | Keep this boundary explicit unless a future product decision adds separately governed execution integrations. |
+| Authentication | Demo bearer sessions remain enabled on the live environment. | Activate a real OIDC provider and set DEMO_MODE=false. |
+| User provisioning | Production users are resolved by immutable IdP subject and must already exist. | Add durable organization membership, invitation and provisioning lifecycle. |
+| Workspace membership | A user currently carries one tenant_id; self-service provisioning is demo-only. | Introduce production organization/membership modeling. |
+| Evidence storage | Uploaded evidence is stored on local service filesystem. | Move to durable object storage or verified persistent disk with backup/retention policy. |
+| Provider coverage | Generic payout CSV is the verified ingestion path; live provider adapters are limited. | Add and test the first customer-required provider adapter and reconciliation flow. |
+| Webhooks | Razorpay webhook configuration is environment-wide and tied to one merchant. | Make credentials and webhook routing tenant-aware and operationally managed. |
+| Abuse controls | No distributed request rate limiting or abuse policy is implemented. | Add edge/application rate limiting for auth, uploads and expensive endpoints. |
+| Observability | Basic deployment logs exist, but product-level alerting, request correlation, SLOs and a tested incident runbook are not established. | Add structured logs, correlation IDs, error tracking, alerts and restore drills. |
+| Database migrations | Alembic exists, but seed/bootstrap code still calls Base.metadata.create_all(). | Keep production schema lifecycle solely under migrations. |
+| Deployment verification | CI verifies frontend build, backend tests and Docker health; live browser verification remains manual. | Run a deployed smoke suite through demo and the first investigation workflow. |
+| Frontend topology | Canonical PRIMHORA frontend is Vercel; legacy Render frontend resources may still exist in historical topology. | Retire duplicate frontend resources after verification. |
+| Recovery | Recovery commands are simulated and read-only by design. | Preserve this boundary unless a future governed execution integration is deliberately added. |
 
 ## Production gate
 
