@@ -1,58 +1,56 @@
-# PRIMHORA Live Integrations
+# PRIMHORA Integrations
 
-The deployed system fails closed when live provider credentials are absent. It never reports a live connection or successful recovery action from mock data.
+Reviewed against the current code and deployment topology on 2 October 2026.
 
-## RazorpayX
+## Current live topology
 
-Set these backend environment variables on Render:
+- UI: Vercel, canonical production domain: https://primhora.vercel.app
+- API: Render, canonical service origin: https://firsthour-inei.onrender.com
+- Vercel /api/* rewrite: routes to the Render API.
+- Production frontend authentication: OIDC Authorization Code + PKCE when VITE_AUTH_REQUIRED=true and the client variables are configured.
+- Current public deployment remains in explicitly labelled demo-capable mode. Do not use it for real customer financial data.
 
-- `RAZORPAY_KEY_ID`
-- `RAZORPAY_KEY_SECRET`
-- `RAZORPAY_ACCOUNT_NUMBER`
-- `RAZORPAY_MERCHANT_ID`
-- `RAZORPAY_WEBHOOK_SECRET`
+## Razorpay-shaped data model
 
-With the first three configured, PRIMHORA can fetch the RazorpayX payout ledger and normalize payouts into its canonical financial model.
+PRIMHORA includes Razorpay-shaped payment vocabulary in its schema and can support a RazorpayX-shaped provider adapter.
 
-With the webhook values configured, POST Razorpay payout webhooks to:
+That does not mean there is a current commercial partnership, live account connection, or production customer integration.
 
-`/api/webhooks/razorpay`
+Provider credentials are server-side only:
 
-Webhook signatures are verified using HMAC-SHA256 before the payload is accepted.
+- RAZORPAY_KEY_ID
+- RAZORPAY_KEY_SECRET
+- RAZORPAY_ACCOUNT_NUMBER
+- RAZORPAY_MERCHANT_ID
+- RAZORPAY_WEBHOOK_SECRET
 
-### Live recovery
+## Webhooks
 
-`FREEZE_PAYOUT` can execute against a real RazorpayX payout when:
+The backend exposes /api/webhooks/razorpay and verifies webhook signatures using HMAC-SHA256 before accepting a supported payload.
 
-1. the command has passed PRIMHORA's existing propose -> review -> approve state machine;
-2. the target payout is actually in RazorpayX's `queued` state;
-3. RazorpayX credentials are configured.
-
-The provider operation is the documented queued-payout cancellation endpoint.
-
-`REVERSE_PAYOUT` remains a manual recovery path for processed payouts. PRIMHORA does not claim that a processed RazorpayX payout can be cancelled through the queued-payout API.
+The current webhook configuration is not yet tenant-aware. See PRODUCTION_DISCREPANCIES.md before enabling this path for external customers.
 
 ## Evidence extraction
 
-Text evidence is processed deterministically.
+Text-bearing PDFs are parsed locally with pypdf.
 
-Text-bearing PDFs are parsed with `pypdf`.
+Images and scanned PDFs can use the Gemini multimodal provider when GEMINI_API_KEY is configured.
 
-Images and scanned PDFs can use Gemini multimodal extraction when:
+Model output is always candidate evidence. Amounts and other financial facts must still be grounded against canonical financial-event records before being marked VERIFIED.
 
-- `GEMINI_API_KEY` is configured.
+Without a vision key, image/scanned-PDF artifacts can be stored and hashed but are not interpreted.
 
-Gemini output is treated as candidate evidence only. Amount claims are still cross-referenced against the canonical financial-event table before they can be marked VERIFIED.
+## Recovery boundary
 
-Without a vision key, image/scanned-PDF artifacts are stored and hashed but are not interpreted.
+The current PRIMHORA recovery workflow is read-only.
 
-## Current deployed surfaces
+It can propose, review, approve, dry-run, prepare and verify a recovery command and its evidence packet, but the /execute route deliberately returns HTTP 409 and performs no external financial action.
 
-- API: `https://firsthour-inei.onrender.com`
-- UI: `https://firsthour-ui-n4cc.onrender.com`
+Do not describe the current build as capable of cancelling, freezing, reversing or recovering live funds.
 
-The UI is configured with the API's Render URL at build time. The backend CORS configuration includes the Render UI origin.
+## Production credential boundary
 
-## Security boundary
+Never put Razorpay, Gemini, database or OIDC server secrets into frontend environment variables.
 
-Do not put Razorpay or Gemini secrets in frontend environment variables. The frontend only calls authenticated backend endpoints. Provider credentials remain server-side on Render.
+Before enabling real customer data, close the production gates in PRODUCTION_DISCREPANCIES.md:
+authentication, durable evidence storage, membership provisioning, provider integration, rate limiting, observability, migrations-only schema lifecycle and deployed-browser smoke verification.
