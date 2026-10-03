@@ -86,7 +86,7 @@ export default function SaaSDataSources() {
         </div>
 
         <div className="grid sm:grid-cols-3 gap-3 mt-7">
-          <SummaryCard label="Connected sources" value={String(connectedSources)} sub="Accepted imports" />
+          <SummaryCard label="Accepted imports" value={String(connectedSources)} sub="This browser session" />
           <SummaryCard label="Live providers" value="0" sub="No credentials configured" />
           <SummaryCard label="Last accepted import" value={lastImport ? new Date(lastImport).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "Never"} sub={lastImport ? new Date(lastImport).toLocaleDateString() : "No source accepted yet"} />
         </div>
