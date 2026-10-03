@@ -33,7 +33,7 @@ export default function SaaS(){
     <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <Metric label="Open incidents" value={open.length} sub={critical?critical+" high-priority":"No high-priority cases"} icon={AlertTriangle} danger={critical>0}/>
       <Metric label="Evidence posture" value={open.length?"ACTIVE":"CLEAR"} sub={open.length?"Cases require review":"No active investigations"} icon={ShieldCheck}/>
-      <Metric label="Connected sources" value={sessionStorage.getItem("primhora_connected_sources")||"0"} sub="Accepted source imports" icon={Database}/>
+      <Metric label="Accepted imports" value={sessionStorage.getItem("primhora_connected_sources")||"0"} sub="This browser session" icon={Database}/>
       <Metric label="Control mode" value="READ-ONLY" sub="Execution blocked by design" icon={Zap}/>
     </div>
    </div>
