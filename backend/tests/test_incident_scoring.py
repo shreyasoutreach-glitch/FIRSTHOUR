@@ -3,6 +3,7 @@ from app.services.incident.scoring import (
     TOTAL_WEIGHT,
     communication_component,
     incident_evidence_score,
+    aggregate_incident_components,
     normalize_dormancy,
     normalize_historical_novelty,
     normalize_robust_z,
@@ -68,3 +69,17 @@ def test_flagship_style_incident_scores_high():
     )
     score = incident_evidence_score(components)
     assert score >= 80.0
+
+def test_incident_aggregation_preserves_single_event_score():
+    c = ScoreComponents(1, 0.8, 0.6, 1, 0.2, 0.4)
+    assert aggregate_incident_components([c]).as_dict() == c.as_dict()
+
+
+def test_incident_aggregation_does_not_let_one_outlier_define_every_dimension():
+    strong = ScoreComponents(1, 1, 1, 1, 1, 1)
+    ordinary = ScoreComponents(0, 0, 0, 0, 0, 0)
+    aggregate = aggregate_incident_components([strong, ordinary])
+    assert aggregate.amount_anomaly == 0.5
+    assert aggregate.new_beneficiary == 0.5
+
+
