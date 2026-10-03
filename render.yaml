@@ -15,8 +15,11 @@ services:
         fromDatabase:
           name: first-hour-db
           property: connectionString
+      # The public Vercel deployment is currently the synthetic product demo.
+      # Real customer production must use a separate deployment with DEMO_MODE=false
+      # and the complete OIDC/JWT configuration below.
       - key: DEMO_MODE
-        value: false
+        value: true
       - key: DEMO_BOOTSTRAP_ON_START
         value: false
       - key: SEED
