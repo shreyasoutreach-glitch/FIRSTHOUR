@@ -10,6 +10,14 @@ import { StepFooter } from "../components/AppShell";
 const LIFECYCLE = ["PROPOSED", "REVIEWED", "APPROVED", "PACKET_READY", "VERIFIED"];
 const ROLE_OPTIONS = ["ANALYST", "FINANCE_OPERATOR", "INVESTIGATOR", "APPROVER", "ADMINISTRATOR"];
 
+const ROLE_PERMISSIONS: Record<string, string[]> = {
+  ANALYST: ["VIEW"],
+  FINANCE_OPERATOR: ["VIEW", "INVESTIGATE"],
+  INVESTIGATOR: ["VIEW", "INVESTIGATE", "RECOMMEND"],
+  APPROVER: ["VIEW", "INVESTIGATE", "APPROVE"],
+  ADMINISTRATOR: ["VIEW", "INVESTIGATE", "RECOMMEND", "APPROVE", "EXECUTE"],
+};
+
 const ACTION_LABELS: Record<string, string> = {
   FREEZE_PAYOUT: "Prepare a freeze-review request",
   REVERSE_PAYOUT: "Prepare a reversal/dispute request",
@@ -106,6 +114,8 @@ export default function RecoveryCommand() {
   const verify = () => runAction(async () => api.verifyCommand(command.id, await getDemoToken(actingRole)));
 
   const stepIndex = command ? LIFECYCLE.indexOf(command.state) : -1;
+  const can = (permission: string) => ROLE_PERMISSIONS[actingRole]?.includes(permission) ?? false;
+  const blocked = (permission: string) => !can(permission);
 
   return (
     <div className="max-w-canvas mx-auto px-6 sm:px-10 py-16">
@@ -178,7 +188,7 @@ export default function RecoveryCommand() {
                 <label className="text-[12px] font-ui text-text_primary/55">Acting as</label>
                 <select
                   value={actingRole}
-                  onChange={(e) => setActingRole(e.target.value)}
+                  onChange={(e) => { setActingRole(e.target.value); setActionError(null); }}
                   className="text-[13px] font-ui border border-forest/25 rounded-[2px] px-2 py-1.5 bg-graphite"
                 >
                   {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{r.replace("_", " ")}</option>)}
