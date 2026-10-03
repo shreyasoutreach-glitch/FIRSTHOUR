@@ -1,6 +1,6 @@
 # Production Discrepancy Register
 
-Reviewed against the current PRIMHORA repository and live Vercel/Render topology on 2 October 2026.
+Reviewed against the current PRIMHORA repository and deployment topology on 3 October 2026.
 
 This is an engineering gap register, not a claim that every item blocks the capstone.
 
@@ -30,12 +30,12 @@ This is an engineering gap register, not a claim that every item blocks the caps
 | Authentication | Demo bearer sessions remain enabled on the live environment. | Activate a real OIDC provider and set DEMO_MODE=false. |
 | User provisioning | Production users are resolved by immutable IdP subject and must already exist. | Add durable organization membership, invitation and provisioning lifecycle. |
 | Workspace membership | A user currently carries one tenant_id; self-service provisioning is demo-only. | Introduce production organization/membership modeling. |
-| Evidence storage | Uploaded evidence is stored on local service filesystem. | Move to durable object storage or verified persistent disk with backup/retention policy. |
+| Evidence storage | New evidence bytes are persisted in the primary database; filesystem storage remains a compatibility/access path. | Formalize database backup/restore, retention and storage-sizing policy; object storage remains preferable at larger evidence volumes. |
 | Provider coverage | Generic payout CSV is the verified ingestion path; live provider adapters are limited. | Add and test the first customer-required provider adapter and reconciliation flow. |
 | Webhooks | Razorpay webhook configuration is environment-wide and tied to one merchant. | Make credentials and webhook routing tenant-aware and operationally managed. |
 | Abuse controls | No distributed request rate limiting or abuse policy is implemented. | Add edge/application rate limiting for auth, uploads and expensive endpoints. |
 | Observability | Basic deployment logs exist, but product-level alerting, request correlation, SLOs and a tested incident runbook are not established. | Add structured logs, correlation IDs, error tracking, alerts and restore drills. |
-| Database migrations | Alembic exists, but seed/bootstrap code still calls Base.metadata.create_all(). | Keep production schema lifecycle solely under migrations. |
+| Database migrations | Alembic is the deployment migration path; demo seed code can still create tables for standalone synthetic setup. | Keep external-customer production schema lifecycle solely under migrations and keep seed-only table creation out of production startup. |
 | Deployment verification | CI verifies frontend build, backend tests and Docker health; live browser verification remains manual. | Run a deployed smoke suite through demo and the first investigation workflow. |
 | Frontend topology | Canonical PRIMHORA frontend is Vercel; legacy Render frontend resources may still exist in historical topology. | Retire duplicate frontend resources after verification. |
 | Recovery | Recovery commands are simulated and read-only by design. | Preserve this boundary unless a future governed execution integration is deliberately added. |
