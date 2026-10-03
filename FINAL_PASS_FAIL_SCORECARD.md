@@ -31,7 +31,7 @@ This scorecard records verification status rather than product claims.
 | Read-only financial execution boundary | IMPLEMENTED, TESTED |
 | Generic multi-source adapter | PARTIAL |
 | PDF packet export | IMPLEMENTED |
-| Durable production evidence storage | IMPLEMENTED, backup/retention policy remains |
+| Durable production evidence storage | IMPLEMENTED for authoritative bytes; backup/retention policy remains |
 | Distributed rate limiting / abuse controls | NOT YET COMPLETE |
 | Production observability and incident runbook | NOT YET COMPLETE |
 | Docker Compose execution in CI | PASS |
@@ -46,7 +46,7 @@ This scorecard records verification status rather than product claims.
 
 ## Latest verification snapshot
 
-GitHub Actions run 36987965934 on 2 October 2026 passed the frontend lane, backend lane and Docker verification lane. The backend suite reported 150 passing tests and the synthetic evaluation step passed.
+GitHub Actions run 36987965934 on 2 October 2026 passed the frontend lane, backend lane and Docker verification lane. The backend suite reported 152 passing tests and the synthetic evaluation step passed.
 
 ## Production verification
 
