@@ -121,7 +121,8 @@ def reject(command_id: str, body: RejectRecoveryCommandRequest, db: Session = De
 
 
 @router.post("/recovery-commands/{command_id}/execute")
-def execute(command_id: str, db: Session = Depends(get_tenant_db)):
+def execute(command_id: str, db: Session = Depends(get_tenant_db),
+            _user: m.User = Depends(require_permission("RECOMMEND"))):
     raise HTTPException(
         status_code=409,
         detail="PRIMHORA is read-only. It prepares evidence packets; it never executes financial actions.",
@@ -152,7 +153,7 @@ def verify(command_id: str, db: Session = Depends(get_tenant_db),
 
 @router.get("/recovery-commands/{command_id}/convergence", response_model=ConvergenceResponse)
 def get_convergence(command_id: str, db: Session = Depends(get_tenant_db)):
-    rc = _get_command_or_404(db, command_id, for_update=True)
+    rc = _get_command_or_404(db, command_id)
     return check_convergence(db, rc)
 
 @router.get("/incident/{incident_id}/recovery-packet.pdf")
