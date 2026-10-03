@@ -1,5 +1,5 @@
 """
-Production-shaped data model for FIRST HOUR.
+Production-shaped data model for PRIMHORA.
 
 This is deliberately built around Razorpay's actual financial primitives
 (Payments, RazorpayX Payouts, Contacts, Fund Accounts, Transfers, Settlements,
