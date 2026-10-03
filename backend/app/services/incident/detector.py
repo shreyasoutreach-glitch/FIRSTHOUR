@@ -25,6 +25,7 @@ from app.services.incident.scoring import (
     ScoreComponents,
     communication_component,
     incident_evidence_score,
+    aggregate_incident_components,
     normalize_dormancy,
     normalize_historical_novelty,
     normalize_robust_z,
@@ -111,7 +112,10 @@ def score_payout(db: Session, payout: m.Payout, baseline: MerchantBaseline,
 
     all_recent = (
         db.query(m.Payout)
-        .filter(m.Payout.merchant_id == payout.merchant_id, m.Payout.created_at <= payout.created_at)
+        .filter(
+            m.Payout.merchant_id == payout.merchant_id,
+            m.Payout.created_at < payout.created_at,
+        )
         .all()
     )
     rolling_count, rolling_amount = rolling_window_stats(
@@ -175,17 +179,9 @@ def create_incident_from_payouts(
             sequence=idx,
         ))
 
-    # Incident-level representative components: take the worst-case (max) of
-    # each dimension across the payouts in the case, since the case as a
-    # whole is exactly as anomalous as its most anomalous member.
-    incident_components = ScoreComponents(
-        new_beneficiary=max(c.new_beneficiary for c in per_payout_components),
-        amount_anomaly=max(c.amount_anomaly for c in per_payout_components),
-        velocity_anomaly=max(c.velocity_anomaly for c in per_payout_components),
-        historical_novelty=max(c.historical_novelty for c in per_payout_components),
-        dormant_entity=max(c.dormant_entity for c in per_payout_components),
-        communication_correlation=max(c.communication_correlation for c in per_payout_components),
-    )
+    # Incident-level components preserve the strongest event while also
+    # accounting for how broadly the pattern appears across the case.
+    incident_components = aggregate_incident_components(per_payout_components)
     score = incident_evidence_score(incident_components)
 
     incident = db.get(m.Incident, incident_id)
