@@ -8,6 +8,7 @@ venv/
 
 # Backend runtime artifacts
 backend/first_hour.db
+backend/test_migration.db
 backend/storage/
 
 # Node / frontend
