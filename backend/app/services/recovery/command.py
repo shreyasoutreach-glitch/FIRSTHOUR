@@ -139,9 +139,9 @@ def _expected_effect_text(action: str) -> str:
 
 
 def _simulate(db: Session, command: m.RecoveryCommand) -> dict:
-    """The one place that computes "what would happen" -- used by both
-    dry_run (no state change) and execute (state change to EXECUTED, but
-    still records SIMULATED, never touches the Payout row itself)."""
+    """Compute the deterministic hypothetical effect used by dry-run and
+    packet preparation. This function never mutates authoritative financial
+    rows and has no execution side effect."""
     if command.target_type != "payout":
         return {
             "feasible": False,
