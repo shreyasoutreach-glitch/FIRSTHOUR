@@ -250,7 +250,7 @@ GitHub Actions runs three independent lanes:
 
 **2 October 2026**
 
-- Backend: **150 tests passed**
+- Backend: **152 tests passed**
 - Synthetic fixture evaluation: **passed**
 - Frontend TypeScript/lint: **passed**
 - Frontend production build: **passed**
