@@ -1,6 +1,6 @@
 # PRIMHORA Honest Audit
 
-Audit date: 2026-10-02
+Audit date: 2026-10-03
 Working branch: main
 
 ## Executive status
@@ -87,12 +87,12 @@ Demo routes exist and are DEMO_MODE-gated.
 6. Team invitations are drafts, not actual invitations.
 7. Seeded demo incidents must never appear in the real workspace.
 8. Deterministic evidence extraction is not an LLM.
-9. Recovery execution currently contains a provider execution path. This violates the new read-only contract and is a Phase 4 blocker.
-10. PDF export is not implemented/verified.
-11. Docker Compose has not been executed with Docker during this audit.
-12. No GitHub Actions CI workflow exists.
-13. Production OIDC code exists, but the deployed environment remains DEMO_MODE.
-14. No fresh local test run was possible in the current tool environment. This is a limitation, not a passing result.
+9. Recovery execution is deliberately blocked with HTTP 409 and performs no external financial action.
+10. PDF evidence-packet export is implemented; deployed-browser verification remains pending.
+11. Docker Compose is verified in CI, although local Docker execution is environment-dependent.
+12. GitHub Actions CI exists and runs backend, frontend and Docker lanes.
+13. Production OIDC code exists, but the public deployment remains demo-capable.
+14. No fresh local test run was possible in the current tool environment. CI verification is the authoritative passing signal.
 
 ## Deterministic-truth rule audit
 
@@ -115,7 +115,7 @@ Phase 4 must enforce this boundary in schemas, provenance, tests and UI wording.
 
 GitHub Actions run 36987965934 on 2026-10-02 completed successfully.
 
-- Backend: 150 tests passed.
+- Backend: 152 tests passed.
 - Frontend: npm ci, TypeScript lint, and production build passed.
 - Docker: compose build/start/healthcheck/teardown passed.
 - Synthetic evaluation step passed and emitted metrics.
